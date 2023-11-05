@@ -1,0 +1,46 @@
+@startuml UseCase_As_Is
+
+actor Пользователь as user
+usecase (Анализ\nактивности\nшахматистов) as analysis
+usecase (Перенос\nинформации\nо шахматистах) as transfer
+ rectangle Lichess.org {
+    note "Условие:\nнеобходимо проанализировать\nучастников клуба\nТочка расширения:\nАнализ участников клуба" as n
+    usecase choose as "Поиск шахматиста
+    --
+    Точка расширения:\nАнализ участников\nклуба"
+    usecase (Переход\nна страницу\nшахматистов клуба) as goToClub
+    usecase (Получение\nинформации\nо шахматистах) as getData
+    
+    getData ..> choose : <<include>>
+    choose <.d. n  : <<extend>>
+    n .d. goToClub
+ }
+
+user - analysis
+analysis .u.> transfer : <<include>>
+transfer .r.> getData : <<include>>
+
+@enduml
+
+@startuml
+left to right direction
+skinparam packageStyle rect
+ 
+rectangle Test1 {
+actor :Alice: as user
+usecase (Usecase 1) as usecase1
+usecase (Usecase 2) as usecase2
+  user -> usecase1
+}
+ 
+newpage
+left to right direction
+skinparam packageStyle rect
+ 
+rectangle Test2 {
+usecase (Usecase 1) as usecase1
+usecase (Usecase 2) as usecase2
+  user -> usecase2
+}
+ 
+@enduml
