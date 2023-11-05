@@ -22,7 +22,7 @@ user - createDashboard
     createDashboard <.u. exportDashboard : <<extend>>
     createDashboard .r.> readList : <<include>>
         readList <.u. createEmpty : <<extend>>
-        readList <... createByClub : <<extend>>
+        readList <.. createByClub : <<extend>>
             createByClub ..> searchClub : <<include>>
         readList <.. createByClubs : <<extend>>
             createByClubs ..> searchClub : <<include>>
@@ -33,7 +33,7 @@ user - createDashboard
         readList <.. deleteList : <<extend>>
         readList <.u. exportList : <<extend>>
         readList <. deletePlayer : <<extend>>
-        readList <. addPlayer : <<extend>>
-            addPlayer ..> choosePlayers : <<include>>
+        readList <.. addPlayer : <<extend>>
+            addPlayer .r.> choosePlayers : <<include>>
 
 @enduml
