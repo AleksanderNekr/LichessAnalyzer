@@ -2,10 +2,11 @@
 
 actor Пользователь as user
 
-usecase (1. Поиск шахматиста) as searchPlayer  
-usecase (2. Поиск клуба) as searchClub
-usecase (3. Выбор шахматистов\nдля добавления) as choosePlayers 
-usecase (4. Создать пустой список) as createEmpty
+rectangle Система {
+    usecase (1. Поиск шахматиста) as searchPlayer  
+    usecase (2. Поиск клуба) as searchClub
+    usecase (3. Выбор шахматистов\nдля добавления) as choosePlayers 
+    usecase (4. Создать пустой список) as createEmpty 
     usecase (5. Создать список\nна основе\nнайденных шахматистов) as createByPlayers 
     usecase (6. Создать список\nна основе\nнайденных клубов) as createByClubs 
     usecase (7. Просмотреть\nсписок из каталога) as readList 
