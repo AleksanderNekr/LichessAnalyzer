@@ -6,34 +6,33 @@ usecase (1. Поиск шахматиста) as searchPlayer
 usecase (2. Поиск клуба) as searchClub
 usecase (3. Выбор шахматистов\nдля добавления) as choosePlayers 
 usecase (4. Создать пустой список) as createEmpty
-usecase (5. Создать список\nна основе\nшахматистов клуба) as createByClub 
-usecase (6. Создать список\nна основе\nнайденных шахматистов) as createByPlayers 
-usecase (7. Создать список\nна основе\nнайденных клубов) as createByClubs 
-usecase (8. Просмотреть\nсписок из каталога) as readList 
-usecase (9. Редактировать\nназвание списка) as editList
-usecase (10. Удалить списки) as deleteList
-usecase (11. Добавить\nшахматистов в список) as addPlayer 
-usecase (12. Удалить\nшахматистов из списка) as deletePlayer
-usecase (13. Экспорт\nсозданных списков) as exportList
-usecase (14. Составить\nотчет) as createDashboard 
-usecase (15. Экспорт отчета) as exportDashboard
+    usecase (5. Создать список\nна основе\nнайденных шахматистов) as createByPlayers 
+    usecase (6. Создать список\nна основе\nнайденных клубов) as createByClubs 
+    usecase (7. Просмотреть\nсписок из каталога) as readList 
+    usecase (8. Редактировать\nназвание списка) as editList
+    usecase (9. Удалить списки) as deleteList
+    usecase (10. Добавить\nшахматистов в список) as addPlayer 
+    usecase (11. Удалить\nшахматистов из списка) as deletePlayer
+    usecase (12. Экспорт\nсозданных списков) as exportList
+    usecase (13. Составить\nотчет) as createDashboard 
+    usecase (14. Экспорт отчета) as exportDashboard
 
-user - createDashboard
-    createDashboard <.u. exportDashboard : <<extend>>
-    createDashboard .r.> readList : <<include>>
-        readList <.u. createEmpty : <<extend>>
-        readList <.. createByClub : <<extend>>
-            createByClub ..> searchClub : <<include>>
-        readList <.. createByClubs : <<extend>>
-            createByClubs ..> searchClub : <<include>>
-        readList <.. createByPlayers : <<extend>>
-            createByPlayers ..> choosePlayers : <<include>>
-                choosePlayers ..> searchPlayer : <<include>>
-        readList <.u. editList : <<extend>>
-        readList <.. deleteList : <<extend>>
-        readList <.u. exportList : <<extend>>
-        readList <. deletePlayer : <<extend>>
-        readList <.. addPlayer : <<extend>>
-            addPlayer .r.> choosePlayers : <<include>>
+    user - createDashboard
+        createDashboard <.u. exportDashboard : <<extend>>
+        createDashboard .r.> readList : <<include>>
+            readList <.u. createEmpty : <<extend>>
+            readList <.. createByClubs : <<extend>>
+                createByClubs ..> searchClub : <<include>>
+            readList <.. createByPlayers : <<extend>>
+                createByPlayers ..> choosePlayers : <<include>>
+                    choosePlayers .l.> searchPlayer : <<include>>
+                    choosePlayers <. searchClub : <<extend>>
+            readList <.u. editList : <<extend>>
+            readList <.. deleteList : <<extend>>
+            readList <.u. exportList : <<extend>>
+            readList <. deletePlayer : <<extend>>
+            readList <.. addPlayer : <<extend>>
+                addPlayer ..> choosePlayers : <<include>>
+}
 
 @enduml
