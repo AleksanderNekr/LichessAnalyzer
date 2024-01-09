@@ -1,0 +1,39 @@
+﻿@startuml Basic Request-Response Sequence
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+' actors: Пользователь, Клиентское приложение, Бэкенд-приложение, Lichess API
+' сценарий: пользователь желает отобразить список шахматистов, клиентское приложение запрашивает список у бэкенда, бэкенд запрашивает список у Lichess API, Lichess API возвращает список, бэкенд обрабатывает данные и возвращает список клиентскому приложению, клиентское приложение отображает список пользователю
+
+actor Пользователь as user
+participant "Клиентское приложение" as client
+participant "Бэкенд-приложение" as backend
+participant "Lichess API" as lichess
+
+user -> client: получить данные
+activate client
+
+client -> backend: отправка\nHTTP запроса
+activate backend
+
+backend -> lichess: отправка\nHTTP запроса
+activate lichess
+lichess --> backend: возврат\nHTTP ответа\nс данными
+deactivate lichess
+
+alt ответ успешен
+    backend -> backend: обработка и\nподготовка данных
+    backend --> client: возврат\nHTTP ответа\nс данными
+    
+    client --> user: отображение\nданных
+else ответ не успешен
+    backend --> client: возврат\nHTTP ответа\nс ошибкой
+    deactivate backend
+    
+    client --> user: отображение\nсообщения\nс ошибкой
+    deactivate client
+end
+
+
+@enduml
