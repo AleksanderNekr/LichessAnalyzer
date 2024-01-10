@@ -2,7 +2,6 @@
 'https://plantuml.com/sequence-diagram
 
 autonumber
-autoactivate on
 
 ' actors: Пользователь, Клиентское приложение, Бэкенд-приложение, Lichess API
 ' сценарий: пользователь желает отобразить список шахматистов, клиентское приложение запрашивает список у бэкенда, бэкенд запрашивает список у Lichess API, Lichess API возвращает список, бэкенд обрабатывает данные и возвращает список клиентскому приложению, клиентское приложение отображает список пользователю
@@ -13,11 +12,15 @@ participant "Бэкенд-приложение" as backend
 participant "Lichess API" as lichess
 
 user -> client: получить данные
+activate client
 
 client -> backend: отправка HTTP запроса
+activate backend
 
 backend -> lichess: отправка HTTP запроса
+activate lichess
 lichess --> backend: возврат HTTP ответа\nс данными
+deactivate lichess
 
 alt ответ успешен
     backend -> backend: обработка и\nподготовка данных
@@ -26,8 +29,10 @@ alt ответ успешен
     client --> user: отображение\nданных
 else ответ не успешен
     backend --> client: возврат HTTP ответа\nс ошибкой
+    deactivate backend
     
     client --> user: отображение\nсообщения\nс ошибкой
+    deactivate client
 end
 
 
@@ -36,7 +41,6 @@ end
 @startuml Request-Response with Cache, retries and 429 check Sequence
 
 autonumber
-autoactivate on
 
 actor Пользователь as user
 participant "Клиентское приложение" as client
@@ -45,16 +49,22 @@ database "Кэш для\nLichess API" as cache
 participant "Lichess API" as lichess
 
 user -> client: получить данные
+activate client
 
 client -> backend: отправка HTTP запроса
+activate backend
 
 backend -> cache: получить данные
+activate cache
 cache --> backend: возврат результата поиска
+deactivate cache
 
 alt поиск по кэшу не дал результатов
     loop ответ от Lichess не успешен
         backend -> lichess: отправка HTTP запроса
+        activate lichess
         lichess --> backend: возврат HTTP ответа
+        deactivate lichess
     
         alt ответ от Lichess с кодом 429 или 5xx
             backend --> client: сообщение\nо необходимости ожидания
@@ -64,14 +74,18 @@ alt поиск по кэшу не дал результатов
             opt получены данные
                 backend -> backend: обработка данных
                 backend --> cache: отправка данных
+                activate cache
+                deactivate cache
             end
             backend --> client: возврат HTTP ответа
         end
     end
 else получены данные из кэша
     backend --> client: возврат HTTP ответа\nс данными
+    deactivate backend
 end
 
 client --> user: отображение данных
+deactivate client
 
 @enduml
