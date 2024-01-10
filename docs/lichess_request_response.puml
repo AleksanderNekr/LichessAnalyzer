@@ -32,3 +32,46 @@ end
 
 
 @enduml
+
+@startuml Request-Response with Cache, retries and 429 check Sequence
+
+autonumber
+autoactivate on
+
+actor Пользователь as user
+participant "Клиентское приложение" as client
+participant "Бэкенд-приложение" as backend
+database "Кэш для\nLichess API" as cache
+participant "Lichess API" as lichess
+
+user -> client: получить данные
+
+client -> backend: отправка HTTP запроса
+
+backend -> cache: получить данные
+cache --> backend: возврат результата поиска
+
+alt поиск по кэшу не дал результатов
+    loop ответ от Lichess не успешен
+        backend -> lichess: отправка HTTP запроса
+        lichess --> backend: возврат HTTP ответа
+    
+        alt ответ от Lichess с кодом 429 или 5xx
+            backend --> client: сообщение\nо необходимости ожидания
+            client --> user: сообщение о недоступности\nсервиса Lichess и таймером ожидания
+            backend --> backend: ожидание перед\nповторной попыткой
+        else успешный ответ от Lichess
+            opt получены данные
+                backend -> backend: обработка данных
+                backend --> cache: отправка данных
+            end
+            backend --> client: возврат HTTP ответа
+        end
+    end
+else получены данные из кэша
+    backend --> client: возврат HTTP ответа\nс данными
+end
+
+client --> user: отображение данных
+
+@enduml
