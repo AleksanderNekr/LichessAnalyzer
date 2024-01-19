@@ -1,0 +1,45 @@
+﻿@startuml
+
+autonumber
+autoactivate on
+
+actor Клиент as client
+participant "Владелец ресурса" as resource_owner
+participant "Сервер авторизации" as auth_server
+note over of auth_server
+Может быть тем же
+сервером,
+что сервер ресурса
+end note
+participant "Сервер ресурса" as resource_server
+
+client -> resource_owner: Запрос на\nавторизацию
+note over of resource_owner
+Возврат удостоверения (разрешения),
+представляющего авторизацию
+владельца ресурса
+end note
+return Разрешение на\nавторизацию
+
+client -> auth_server: Разрешение на\nавторизацию
+auth_server -> auth_server: Аутентификация
+auth_server -> auth_server: Валидация\nразрешения
+
+alt Валидация пройдена
+    auth_server --> client: Токен доступа
+    
+    client -> resource_server: Токен доступа
+    resource_server -> resource_server: Проверка токена
+    alt Токен действителен
+        resource_server --> client: Защищенный ресурс
+    else Токен не действителен
+        autonumber 9
+        resource_server --> client: Ответ об ошибке токена
+    end
+else Валидация не пройдена
+    autonumber 6
+    auth_server --> client: Ответ об ошибке валидации
+end
+
+
+@enduml
