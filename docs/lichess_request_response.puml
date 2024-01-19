@@ -28,6 +28,7 @@ alt ответ успешен
     
     client --> user: отображение\nданных
 else ответ не успешен
+    autonumber 5
     backend --> client: возврат HTTP ответа\nс ошибкой
     deactivate backend
     
