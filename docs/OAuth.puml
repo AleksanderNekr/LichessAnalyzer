@@ -26,15 +26,19 @@ auth_server -> auth_server: Аутентификация
 auth_server -> auth_server: Валидация\nразрешения
 
 alt Валидация пройдена
-    auth_server --> client: Токен доступа
+    auth_server --> client: Токен доступа\nи Токен обновления
     
-    client -> resource_server: Токен доступа
-    resource_server -> resource_server: Проверка токена
-    alt Токен действителен
-        resource_server --> client: Защищенный ресурс
-    else Токен не действителен
-        autonumber 9
-        resource_server --> client: Ответ об ошибке токена
+    loop Ресурс не получен
+        client -> resource_server: Токен доступа
+        resource_server -> resource_server: Проверка токена
+        alt Токен действителен
+            resource_server --> client: Защищенный ресурс
+        else Токен не действителен
+            autonumber 9
+            resource_server --> client: Ответ об ошибке токена
+            client -> auth_server: Токен обновления
+            auth_server --> client: Токен доступа
+        end
     end
 else Валидация не пройдена
     autonumber 6
