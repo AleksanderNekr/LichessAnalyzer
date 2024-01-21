@@ -6,20 +6,21 @@ autoactivate on
 actor Клиент as client
 participant "Сервер авторизации" as auth_server
 note over of auth_server
-Может быть тем же
-сервером,
+Может быть тем же сервером,
 что сервер ресурса
 end note
 participant "Сервер ресурса" as resource_server
 participant "Владелец ресурса" as resource_owner
 
 client -> resource_owner: Запрос на\nавторизацию
-note over of resource_owner
-Возврат удостоверения (разрешения),
-представляющего авторизацию
+return Разрешение на\nавторизацию
+note right
+Возврат удостоверения
+(разрешения),
+представляющего
+авторизацию
 владельца ресурса
 end note
-return Разрешение на\nавторизацию
 
 client -> auth_server: Разрешение на\nавторизацию
 auth_server -> auth_server: Аутентификация
