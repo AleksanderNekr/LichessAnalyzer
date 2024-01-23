@@ -1,4 +1,4 @@
-﻿@startuml
+﻿@startuml auth-code-flow
 
 autonumber
 autoactivate on
@@ -22,7 +22,7 @@ note right
 владельца ресурса
 end note
 
-client -> auth_server: Разрешение на\nавторизацию
+client -> auth_server: Разрешение на\nавторизацию,\nID клиента, Секрет
 auth_server -> auth_server: Аутентификация
 auth_server -> auth_server: Валидация\nразрешения
 
