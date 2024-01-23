@@ -48,3 +48,54 @@ end
 
 
 @enduml
+
+@startuml pkce-code-flow
+
+autonumber
+autoactivate on
+
+actor Клиент as client
+participant "Сервер авторизации" as auth_server
+participant "Сервер ресурса" as resource_server
+participant "Владелец ресурса" as resource_owner
+
+client -> resource_owner: Запрос на\nавторизацию
+return Разрешение на\nавторизацию
+
+client -> auth_server: Разрешение на\nавторизацию,\nID клиента, Секрет,\nТрансформированный верификатор,\nМетод трансформации
+auth_server -> auth_server: Аутентификация
+auth_server -> auth_server: Валидация\nразрешения
+
+alt Валидация пройдена
+    auth_server --> auth_server: Сохранение\nтрансформированного верификатора\nи метода трансформации
+    
+    auth_server --> client: Код авторизации
+    client -> auth_server: Код авторизации, Верификатор
+    auth_server -> auth_server: Трансформация\nверификатора и сравнение
+    
+    alt Верификация успешна
+        auth_server --> client: Токен доступа и Токен обновления
+        
+        loop Ресурс не получен
+            client -> resource_server: Токен доступа
+            resource_server -> resource_server: Проверка токена
+            alt Токен действителен
+                resource_server --> client: Защищенный ресурс
+            else Токен не действителен
+                autonumber 13
+                resource_server --> client: Ответ об ошибке токена
+                client -> auth_server: Токен обновления
+                auth_server --> client: Токен доступа
+            end
+        end
+    else Верификация неуспешна
+        autonumber 10
+        auth_server --> client: Ответ о неудачной\nпопытке получить токен
+    end
+else Валидация не пройдена
+    autonumber 6
+    auth_server --> client: Ответ об ошибке валидации
+end
+
+
+@enduml
