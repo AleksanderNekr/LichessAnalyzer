@@ -1,0 +1,274 @@
+﻿@startuml backend-component
+
+component "Бэкенд-приложение" {
+    [API приложения] as api 
+    [Аутентификация\nи авторизация] as auth
+    [Управление\nданными приложения] as data_mg
+    [Отслеживание\nсостояния] as perf
+    
+    api .r.> data_mg
+    api ..> perf
+    api ..> auth
+    
+    interface "Кэшированные\t\t\nданные" as icache
+    data_mg -u-( icache
+    port "Обновление\nкэшированных\nданных" as cache_p
+    icache - cache_p
+    
+    interface "Данные\nпредметной\nобласти" as ilichess
+    data_mg -u-( ilichess
+    port "Получение\nданных\nот Lichess" as lichess_p
+    ilichess - lichess_p
+    
+    interface "                 Пользовательские\n                  данные" as iuser_data
+    data_mg -u-( iuser_data
+    port "Чтение\nи сохранение\nданных" as user_data_p
+    iuser_data - user_data_p
+    
+    interface "Конечные точки" as iapi
+    api -u- iapi: HTTP,\nJSON,\nOAuth
+    port "Предоставление\nконечных точек" as clients_p
+    iapi )- clients_p
+    
+    note bottom of auth
+    Отвечает за авторизованный
+    доступ к API и ресурсам системы.
+    end note
+
+    note bottom of data_mg
+    Управление списками
+    пользователя, настройками.
+    Управление
+    анализируемыми данными
+    и их обновление.
+    end note
+
+    note bottom of perf
+    Проверка состояния
+    системы, настройка
+    логирования,
+    политики повторной
+    отправки запросов.
+    end note
+
+    note right of api
+    Cодержит конечные точки,
+    вызываемые клиентским
+    приложением и
+    другими пользователями API.
+    end note
+}
+
+@enduml
+
+@startuml frontend-component
+
+component "Клиентское приложение" {
+    [Пользовательский\nинтерфейс] as ui 
+    [Аутентификация\nи авторизация] as auth
+    [Управление\nданными приложения] as data_mg
+    [Отслеживание\nсостояния] as perf
+    
+    ui .r.> data_mg
+    ui ..> perf
+    ui ..> auth
+    
+    port "Взаимодействие\nс браузером" as user_p
+    interface "Страницы\nсайта" as ipages
+    ipages -- ui
+    ipages )- user_p
+    
+    port "Поиск данных" as search_p
+    interface "Конечная точка\nпоиска" as isearch
+    data_mg -u-( isearch
+    isearch -- search_p
+    
+    portout "Взаимодействие\nс бэкенд-сервером" as back_p
+    interface "Конечные точки\nбэкенда" as iapi
+    data_mg -( iapi
+    iapi - back_p
+    
+    port "Данные\nкэша" as cache_p
+    interface "Конечные\nточки\nкэша" as icache
+    data_mg -u-( icache
+    icache - cache_p
+    
+    note bottom of auth
+    Отвечает за
+    авторизованный
+    доступ к функционалу
+    системы.
+    end note
+
+    note bottom of data_mg
+    Поисковые запросы
+    к Lichess API,
+    взаимодействие
+    с бэкенд-приложением
+    end note
+
+    note bottom of perf
+    Проверка подключения
+    и состояния системы.
+    end note
+
+    note top of ui
+    Управление
+    дашбордами,
+    управление 
+    списками анализа.
+    end note
+}
+
+@enduml
+
+@startuml composed-diagram
+
+component "Бэкенд-приложение" {
+    [API приложения] as api 
+    [Аутентификация\nи авторизация] as auth
+    [Управление\nданными приложения] as data_mg
+    [Отслеживание\nсостояния] as perf
+    
+    api .r.> data_mg
+    api ..> perf
+    api ..> auth
+    
+    interface "Кэшированные\t\nданные" as icache
+    data_mg -u-( icache
+    port "Обновление\nкэшированных\nданных" as cache_p
+    icache - cache_p
+    
+    interface "Данные\nпредметной\nобласти" as ilichess
+    data_mg -u-( ilichess
+    port "Получение\nданных\nот Lichess" as lichess_p
+    ilichess - lichess_p
+    
+    interface "                 Пользовательские\n                  данные" as iuser_data
+    data_mg -u-( iuser_data
+    port "Чтение\nи сохранение\nданных" as user_data_p
+    iuser_data - user_data_p
+    
+    interface "Конечные точки" as iapi
+    api -u- iapi: HTTP,\nJSON,\nOAuth
+    port "Предоставление\nконечных точек" as clients_p
+    iapi )- clients_p
+    
+    note bottom of auth
+    Отвечает за авторизованный
+    доступ к API и ресурсам системы.
+    end note
+
+    note bottom of data_mg
+    Управление списками
+    пользователя, настройками.
+    Управление
+    анализируемыми данными
+    и их обновление.
+    end note
+
+    note bottom of perf
+    Проверка состояния
+    системы, настройка
+    логирования,
+    политики повторной
+    отправки запросов.
+    end note
+
+    note right of api
+    Cодержит конечные точки,
+    вызываемые клиентским
+    приложением и
+    другими пользователями API.
+    end note
+}
+
+component "Клиентское приложение" {
+    [Пользовательский\nинтерфейс] as ui 
+    [Аутентификация\nи авторизация] as auth_client
+    [Управление\nданными приложения] as data_mg_client
+    [Отслеживание\nсостояния] as perf_client
+    
+    ui .r.> data_mg_client
+    ui ..> perf_client
+    ui ..> auth_client
+    
+    port "Взаимодействие\nс браузером" as user_p_client
+    interface "Страницы\nсайта" as ipages
+    ipages -- ui
+    ipages )- user_p_client
+    
+    port "Поиск данных" as search_p
+    interface "Конечная точка\nпоиска" as isearch_client
+    data_mg_client -u-( isearch_client
+    isearch_client -- search_p
+    
+    portout "Взаимодействие\nс бэкенд-сервером" as back_p_client
+    interface "Конечные точки" as iapi_client
+    data_mg_client -( iapi_client
+    iapi_client - back_p_client
+    
+    port "Получение данных кэша" as cache_p_client
+    interface "Конечные\nточки\nкэша" as icache_client
+    data_mg_client -u-( icache_client
+    icache_client - cache_p_client
+    
+    note bottom of auth_client
+    Отвечает за
+    авторизованный
+    доступ к функционалу
+    системы.
+    end note
+
+    note bottom of data_mg_client
+    Поисковые запросы
+    к Lichess API,
+    взаимодействие
+    с бэкенд-приложением,
+    взаимодействие с кэшем
+    end note
+
+    note bottom of perf_client
+    Проверка подключения
+    и состояния системы.
+    end note
+
+    note top of ui
+    Управление
+    дашбордами,
+    управление 
+    списками анализа.
+    end note
+}
+
+database "Redis-кэш" as redis
+database "Данные\nпользователей" as db
+cloud "Lichess.org" as lichess_cloud
+interface "Lichess API" as lichess_api
+interface "Страницы\nсайта" as user_pages
+interface "Конечные точки Redis" as redis_api
+interface "Backend\nAPI" as back_api
+interface "TCP/IP | SQL" as sql
+actor "Пользователи\nAPI" as api_users
+person "Браузер\nпользователя" as browser
+
+' external
+lichess_api - lichess_cloud
+user_pages )- browser
+redis_api - redis
+back_api )- api_users
+sql - db
+
+' back
+clients_p -u- back_api
+cache_p -u-( redis_api
+lichess_p -u-( lichess_api
+user_data_p -( sql
+
+' client
+user_p_client -u- user_pages
+search_p -u-( lichess_api
+back_p_client -r-( back_api
+cache_p_client -( redis_api
+
+@enduml
