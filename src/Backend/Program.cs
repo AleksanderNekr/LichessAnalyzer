@@ -1,3 +1,5 @@
+using System.Net.Mime;
+using System.Text.Json.Serialization;
 using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
@@ -17,10 +19,12 @@ builder.Services.AddLogging(static builder =>
 
 Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
 
+builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 builder.Services.AddHttpLogging(static options =>
                                 {
                                     options.LoggingFields = HttpLoggingFields.RequestMethod | HttpLoggingFields.Response;
-                                    options.MediaTypeOptions.AddText("application/json");
+                                    options.MediaTypeOptions.AddText(MediaTypeNames.Application.Json);
                                 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

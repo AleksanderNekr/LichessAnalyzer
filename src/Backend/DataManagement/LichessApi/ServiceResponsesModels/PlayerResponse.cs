@@ -9,7 +9,7 @@ public record PlayerResponse(
     [property: JsonPropertyName("gamesHistory")]     IReadOnlyList<GamesList>           GamesLists,
     [property: JsonPropertyName("statistics")]       IReadOnlyList<Statistic>           Statistics,
     [property: JsonPropertyName("tournaments")]      IReadOnlyList<TournamentStatistic> Tournaments,
-    [property: JsonPropertyName("teams")]            IReadOnlyList<TeamResponse>        Clubs
+    [property: JsonPropertyName("teams")]            IReadOnlyList<TeamResponse>        Teams
 );
 
 public record GamesList(
