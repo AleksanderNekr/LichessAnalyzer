@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Backend.DataManagement.LichessApi;
+namespace Backend.DataManagement.LichessApi.ServiceResponsesModels;
 
 public enum PlayCategory
 {
