@@ -1,4 +1,9 @@
+using Audit.Core;
+using Audit.Http;
+using Audit.Serilog.Configuration;
+using Microsoft.AspNetCore.HttpLogging;
 using Serilog;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
@@ -10,6 +15,7 @@ builder.Services.AddLogging(static builder =>
                                 builder.AddSerilog(dispose: true);
                             });
 
+Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
 
 builder.Services.AddHttpLogging(static options =>
                                 {
