@@ -71,6 +71,7 @@ builder.Services.AddHttpClient<GetDataService>(
                         });
 
 builder.Services.AddTransient<UsersManagementService>();
+builder.Services.AddTransient<AnalyticsListsService>();
 
 WebApplication app = builder.Build();
 
