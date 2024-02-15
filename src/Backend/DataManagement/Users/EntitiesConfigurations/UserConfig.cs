@@ -32,7 +32,7 @@ public class UserConfig : IEntityTypeConfiguration<User>
 
         builder.HasMany(user => user.AnalyticsLists)
                .WithOne(lists => lists.Creator)
-               .HasForeignKey(list => list.UserId)
+               .HasForeignKey(list => list.CreatorId)
                .HasConstraintName("fk_player_lists_by_user")
                .OnDelete(DeleteBehavior.Cascade);
 

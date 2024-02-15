@@ -5,6 +5,7 @@ using Audit.Http;
 using Audit.Serilog.Configuration;
 using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.Users;
+using Backend.DataManagement.Users.Services;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
@@ -68,6 +69,8 @@ builder.Services.AddHttpClient<GetDataService>(
                                         .IncludeResponseHeaders()
                                         .IncludeResponseBody();
                         });
+
+builder.Services.AddTransient<UsersManagementService>();
 
 WebApplication app = builder.Build();
 
