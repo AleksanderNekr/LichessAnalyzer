@@ -23,9 +23,13 @@ public record GamesList(
 );
 
 public record RatingHistory(
-    [property: JsonPropertyName("category")]      PlayCategory Category,
-    [property: JsonPropertyName("rating")]        int          Rating,
-    [property: JsonPropertyName("actualityDate")] DateTime     ActualityDate
+    [property: JsonPropertyName("category")]       PlayCategory               Category,
+    [property: JsonPropertyName("ratingsPerDate")] IEnumerable<RatingPerDate> RatingPerDates
+);
+
+public record RatingPerDate(
+    [property: JsonPropertyName("rating")]        int      Rating,
+    [property: JsonPropertyName("actualityDate")] DateOnly ActualityDate
 );
 
 public record Statistic(
