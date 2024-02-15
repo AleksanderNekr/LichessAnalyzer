@@ -4,13 +4,27 @@ using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
 using Backend.DataManagement.LichessApi;
+using Backend.DataManagement.Users;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+string connectionString = builder.Configuration.GetConnectionString("UserDataSource")!;
+builder.Services.AddDbContext<UsersContext>(optionsBuilder =>
+                                            {
+                                                optionsBuilder.UseNpgsql(connectionString,
+                                                                         static optionsBuilder =>
+                                                                             optionsBuilder.EnableRetryOnFailure());
+                                                optionsBuilder.LogTo(Log.Debug,
+                                                                     new[] { DbLoggerCategory.Database.Command.Name },
+                                                                     LogLevel.Information);
+                                                optionsBuilder.EnableSensitiveDataLogging();
+                                            });
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration)
                                       .CreateLogger();
@@ -31,7 +45,9 @@ builder.Services.AddHttpLogging(static options =>
                                     options.MediaTypeOptions.AddText(MediaTypeNames.Application.Json);
                                 });
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+       .AddNpgSql(connectionString);
+
 builder.Services
        .AddControllers()
        .AddJsonOptions(static options =>
@@ -76,11 +92,25 @@ app.UseRouting()
 
 app.UseHttpLogging();
 
+await ApplyMigrationsAsync(app.Services);
+
 Log.Information("I'm alive!");
 
 app.Run();
 
 return;
+
+async Task ApplyMigrationsAsync(IServiceProvider appServices)
+{
+    using IServiceScope scope    = appServices.CreateScope();
+    IServiceProvider    services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<UsersContext>();
+    if ((await context.Database.GetPendingMigrationsAsync()).Any())
+    {
+        await context.Database.MigrateAsync();
+    }
+}
 
 static void ConfigureAuditSerilog(ISerilogConfigurator configurator)
 {
