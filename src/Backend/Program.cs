@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
+using Backend.DataManagement.LichessApi;
 using Microsoft.AspNetCore.HttpLogging;
 using Serilog;
 
@@ -26,8 +27,27 @@ builder.Services.AddHttpLogging(static options =>
                                     options.LoggingFields = HttpLoggingFields.RequestMethod | HttpLoggingFields.Response;
                                     options.MediaTypeOptions.AddText(MediaTypeNames.Application.Json);
                                 });
+
+builder.Services
+       .AddControllers()
+       .AddJsonOptions(static options =>
+                           options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient<GetDataService>(
+            client =>
+            {
+                client.BaseAddress = new Uri("https://lichess.org/api/");
+            })
+       .AddAuditHandler(static configurator =>
+                        {
+                            configurator.IncludeRequestBody()
+                                        .IncludeRequestHeaders()
+                                        .IncludeContentHeaders()
+                                        .IncludeResponseHeaders()
+                                        .IncludeResponseBody();
+                        });
 
 WebApplication app = builder.Build();
 
@@ -40,6 +60,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet("/hello", () => "Hello World!");
+app.UseRouting()
+   .UseEndpoints(static endpoints =>
+                 {
+                     endpoints.MapControllers();
+                 });
 
 app.UseHttpLogging();
 
