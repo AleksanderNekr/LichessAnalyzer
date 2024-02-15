@@ -4,7 +4,10 @@ using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
 using Backend.DataManagement.LichessApi;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -28,6 +31,7 @@ builder.Services.AddHttpLogging(static options =>
                                     options.MediaTypeOptions.AddText(MediaTypeNames.Application.Json);
                                 });
 
+builder.Services.AddHealthChecks();
 builder.Services
        .AddControllers()
        .AddJsonOptions(static options =>
@@ -59,11 +63,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/hello", () => "Hello World!");
 app.UseRouting()
    .UseEndpoints(static endpoints =>
                  {
                      endpoints.MapControllers();
+                     endpoints.MapHealthChecks("/_health",
+                                               new HealthCheckOptions
+                                               {
+                                                   ResponseWriter = WriteCheckResponse
+                                               });
                  });
 
 app.UseHttpLogging();
@@ -91,4 +99,27 @@ static void ConfigureAuditSerilog(ISerilogConfigurator configurator)
 
                              return @event.ToJson();
                          });
+}
+
+static Task WriteCheckResponse(HttpContext httpContext, HealthReport healthReport)
+{
+    switch (healthReport.Status)
+    {
+        case HealthStatus.Unhealthy:
+            Log.Error("HealthCheck executed, result: UNHEALTHY");
+
+            break;
+        case HealthStatus.Degraded:
+            Log.Warning("HealthCheck executed, result: DEGRADED");
+
+            break;
+        case HealthStatus.Healthy:
+            Log.Information("HealthCheck executed, result: healthy");
+
+            break;
+        default:
+            throw new ArgumentOutOfRangeException();
+    }
+
+    return UIResponseWriter.WriteHealthCheckUIResponse(httpContext, healthReport);
 }
