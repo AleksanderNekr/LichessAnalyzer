@@ -23,17 +23,6 @@ public class AnalyticsListsService(UsersContext context)
         return list;
     }
 
-    public Task<AnalyticsList> CreateByTeamsAsync(
-        Guid              listId,
-        string            listName,
-        User              creator,
-        CancellationToken cancellationToken = default,
-        params string[]   teamsIds)
-    {
-        // Need fetch to cache or Lichess API to get players ids from teams.
-        throw new NotImplementedException();
-    }
-
     public async Task<bool> UpdateListNameAsync(
         User              owner,
         Guid              listId,
