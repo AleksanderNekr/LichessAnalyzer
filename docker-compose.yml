@@ -1,0 +1,40 @@
+services:
+  server:
+    build:
+      context: .
+      target: final
+    ports:
+      - 8080:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      DATABASE_HOST: localhost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - /DockerData/postgres/data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server --bind redis
+      --requirepass redispass
+      --maxmemory 30mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
