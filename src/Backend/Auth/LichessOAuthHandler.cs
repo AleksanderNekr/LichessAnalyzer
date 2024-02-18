@@ -3,6 +3,8 @@ using System.Net.Mime;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Backend.DataManagement.Users.Entities;
+using Backend.DataManagement.Users.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
@@ -14,7 +16,9 @@ namespace Backend.Auth;
 public class LichessOAuthHandler(
     IOptionsMonitor<LichessOAuthOptions> options,
     ILoggerFactory                       loggerFactory,
-    UrlEncoder                           encoder)
+    UrlEncoder                           encoder,
+    UsersManagementService               usersManagementService,
+    ILogger<LichessOAuthHandler>         logger)
     : OAuthHandler<LichessOAuthOptions>(options, loggerFactory, encoder)
 {
     /// <inheritdoc />
@@ -22,7 +26,6 @@ public class LichessOAuthHandler(
                                                                           AuthenticationProperties properties,
                                                                           OAuthTokenResponse       tokens)
     {
-        ILogger<LichessOAuthHandler> logger = loggerFactory.CreateLogger<LichessOAuthHandler>();
         logger.LogInformation("Starting creating ticket");
 
         using JsonDocument payload = await RequestUserInformationAsync(Options.UserInformationEndpoint, tokens.AccessToken!)
@@ -44,7 +47,9 @@ public class LichessOAuthHandler(
 
         await Events.CreatingTicket(ticketContext);
         AuthenticationTicket ticket = new(ticketContext.Principal!, ticketContext.Properties, Scheme.Name);
-        logger.LogInformation("Ticket created\n{@Ticket}", ticket);
+        logger.LogInformation("Ticket created: {Ticket}", ticket.ToString());
+
+        await RegisterUserAsync();
 
         return ticket;
 
@@ -54,13 +59,26 @@ public class LichessOAuthHandler(
                 && !identity.HasClaim(claim => claim.Type == ClaimTypes.Email)
                 && Options.Scope.Contains("email:read");
         }
+
+        async Task RegisterUserAsync()
+        {
+            string username = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            User? registered = await usersManagementService.TryCreateUserAsync(
+                                   Guid.NewGuid(),
+                                   username,
+                                   CancellationToken.None);
+            if (registered is not null)
+            {
+                logger.LogDebug("Successfully registered {@User}", registered);
+            }
+        }
     }
 
     /// <inheritdoc />
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        ILogger<LichessOAuthHandler> logger = loggerFactory.CreateLogger<LichessOAuthHandler>();
-        logger.LogInformation("Starting authenticating");
+        logger.LogInformation("Starting authenticating without creating a ticket");
 
         AuthenticateResult result = await Context.AuthenticateAsync(SignInScheme);
         logger.LogInformation("Authentication result: {Result}",
