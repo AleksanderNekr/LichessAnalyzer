@@ -4,6 +4,7 @@ using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
 using Backend;
+using Backend.Auth;
 using Backend.DataManagement.Analytics;
 using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.Users;
@@ -69,6 +70,8 @@ builder.Services.AddHttpClient<GetDataService>(
                                         .IncludeResponseBody();
                         })
        .AddRetryPolicy();
+
+builder.Services.AddLichessAuthentication();
 
 builder.Services.AddTransient<UsersManagementService>();
 builder.Services.AddTransient<AnalyticsListsService>();
