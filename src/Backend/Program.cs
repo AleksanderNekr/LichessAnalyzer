@@ -47,9 +47,6 @@ builder.Services.AddHttpLogging(static options =>
                                     options.MediaTypeOptions.AddText(MediaTypeNames.Application.Json);
                                 });
 
-builder.Services.AddHealthChecks()
-       .AddNpgSql(connectionString);
-
 builder.Services
        .AddControllers()
        .AddJsonOptions(static options =>
@@ -77,6 +74,10 @@ builder.Services.AddTransient<AnalyticsListsService>();
 IConfigurationSection redisCacheSection = builder.Configuration.GetSection("RedisSettings");
 builder.Services.Configure<CacheOptions>(redisCacheSection);
 builder.Services.AddScoped<IAnalyticsCacheService, RedisAnalyticsCacheService>();
+
+builder.Services.AddHealthChecks()
+       .AddNpgSql(connectionString)
+       .AddRedis(redisCacheSection.GetValue<string>("RedisConnectionsString")!);
 
 WebApplication app = builder.Build();
 
@@ -157,7 +158,7 @@ static Task WriteCheckResponse(HttpContext httpContext, HealthReport healthRepor
 
             break;
         default:
-            throw new ArgumentOutOfRangeException();
+            throw new ArgumentOutOfRangeException(nameof(healthReport));
     }
 
     return UIResponseWriter.WriteHealthCheckUIResponse(httpContext, healthReport);
