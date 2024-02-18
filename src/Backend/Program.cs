@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
+using Backend;
 using Backend.DataManagement.Analytics;
 using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.Users;
@@ -66,7 +67,8 @@ builder.Services.AddHttpClient<GetDataService>(
                                         .IncludeContentHeaders()
                                         .IncludeResponseHeaders()
                                         .IncludeResponseBody();
-                        });
+                        })
+       .AddRetryPolicy();
 
 builder.Services.AddTransient<UsersManagementService>();
 builder.Services.AddTransient<AnalyticsListsService>();
