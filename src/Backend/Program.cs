@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
+using Backend.DataManagement.Analytics;
 using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.Users;
 using Backend.DataManagement.Users.Services;
@@ -72,6 +73,10 @@ builder.Services.AddHttpClient<GetDataService>(
 
 builder.Services.AddTransient<UsersManagementService>();
 builder.Services.AddTransient<AnalyticsListsService>();
+
+IConfigurationSection redisCacheSection = builder.Configuration.GetSection("RedisSettings");
+builder.Services.Configure<CacheOptions>(redisCacheSection);
+builder.Services.AddScoped<IAnalyticsCacheService, RedisAnalyticsCacheService>();
 
 WebApplication app = builder.Build();
 
