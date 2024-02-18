@@ -28,7 +28,7 @@ public class LichessOAuthHandler(
     {
         logger.LogInformation("Starting creating ticket");
 
-        using JsonDocument payload = await RequestUserInformationAsync(Options.UserInformationEndpoint, tokens.AccessToken!)
+        using JsonDocument payload = await RequestUserInformationAsync(Options.UserInformationEndpoint, tokens.TokenType!, tokens.AccessToken!)
                                   ?? throw new HttpRequestException("Error while trying to get USER PROFILE");
         logger.LogInformation("Got payload\n{Payload}", payload.RootElement.ToString());
 
@@ -39,7 +39,7 @@ public class LichessOAuthHandler(
 
         if (EmailCanBeRetrieved())
         {
-            using JsonDocument emailPayload = await RequestUserInformationAsync(Options.UserEmailsEndpoint, tokens.AccessToken!)
+            using JsonDocument emailPayload = await RequestUserInformationAsync(Options.UserEmailsEndpoint, tokens.TokenType!, tokens.AccessToken!)
                                            ?? throw new HttpRequestException("Error while trying to get EMAIL");
             logger.LogInformation("Got email payload\n{Payload}", emailPayload.RootElement.ToString());
             ticketContext.RunClaimActions(emailPayload.RootElement);
@@ -94,26 +94,32 @@ public class LichessOAuthHandler(
         // The SignInScheme may be shared with multiple providers, make sure this provider issued the identity.
         AuthenticationTicket? ticket = result.Ticket;
 
-        if (ticket is null
-         || !ticket.Properties.Items.TryGetValue(".AuthScheme", out var authenticatedScheme)
-         || !string.Equals(Scheme.Name, authenticatedScheme, StringComparison.Ordinal))
+        if (Unauthenticated())
         {
             return AuthenticateResult.NoResult();
         }
 
         logger.LogInformation("Auth succeeded");
 
-        return AuthenticateResult.Success(new AuthenticationTicket(ticket.Principal,
+        return AuthenticateResult.Success(new AuthenticationTicket(ticket!.Principal,
                                                                    ticket.Properties,
                                                                    Scheme.Name));
+
+        bool Unauthenticated()
+        {
+            return ticket is null
+                || !ticket.Properties.Items.TryGetValue(".AuthScheme", out string? authenticatedScheme)
+                || !string.Equals(Scheme.Name, authenticatedScheme, StringComparison.Ordinal);
+        }
     }
 
     private async Task<JsonDocument?> RequestUserInformationAsync(string userInfoEndpoint,
+                                                                  string tokenType,
                                                                   string accessToken)
     {
         using HttpRequestMessage request = new(HttpMethod.Get, userInfoEndpoint);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue(tokenType, accessToken);
 
         using HttpResponseMessage response = await Backchannel.SendAsync(
                                                  request,
