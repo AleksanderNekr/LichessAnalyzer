@@ -86,10 +86,14 @@ builder.Services.AddHealthChecks()
 
 WebApplication app = builder.Build();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseReDoc(options => options.RoutePrefix = "api");
 }
 
 app.UseHttpsRedirection();
