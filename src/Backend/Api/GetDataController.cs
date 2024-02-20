@@ -8,9 +8,9 @@ namespace Backend.Api;
 [Route("api")]
 public class GetDataController(GetDataService getDataService) : Controller
 {
-    [HttpPost("players-info")]
-    public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetPlayersInfo([FromBody] IEnumerable<string> ids,
-                                                                                CancellationToken              cancellationToken)
+    [HttpGet("players")]
+    public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetPlayersInfo([FromQuery] IEnumerable<string> ids,
+                                                                                CancellationToken               cancellationToken)
     {
         return Ok(await getDataService.GetChessPlayersAsync(ids, cancellationToken));
     }
