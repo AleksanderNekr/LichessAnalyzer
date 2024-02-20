@@ -1,4 +1,5 @@
-﻿using Backend.DataManagement.LichessApi;
+﻿using System.Runtime.CompilerServices;
+using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,21 @@ namespace Backend.Api;
 public class GetDataController(GetDataService getDataService) : Controller
 {
     [HttpGet("players")]
-    public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetPlayersInfo([FromQuery] IEnumerable<string> ids,
-                                                                                CancellationToken               cancellationToken)
+    public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetPlayersInfo(
+        [FromQuery] IEnumerable<string>        ids,
+        [FromQuery] IEnumerable<PlayerStat>?   withStats         = null,
+        [FromQuery] IEnumerable<PlayCategory>? withCategories    = null,
+        CancellationToken                      cancellationToken = default)
     {
-        return Ok(await getDataService.GetChessPlayersAsync(ids, cancellationToken));
+        List<PlayerStat>   stats      = (withStats      ?? Enumerable.Empty<PlayerStat>()).ToList();
+        List<PlayCategory> categories = (withCategories ?? Enum.GetValues<PlayCategory>()).ToList();
+        IEnumerable<PlayerResponse>? players = await getDataService.GetChessPlayersAsync(ids,
+                                                                                         stats,
+                                                                                         categories,
+                                                                                         cancellationToken);
+
+        return Ok(players);
     }
+
+
 }

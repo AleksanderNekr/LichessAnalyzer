@@ -6,6 +6,8 @@ namespace Backend.DataManagement.LichessApi;
 public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logger)
 {
     public async Task<IEnumerable<PlayerResponse>?> GetChessPlayersAsync(IEnumerable<string> ids,
+                                                                         List<PlayerStat>    stats,
+                                                                         List<PlayCategory>  categories,
                                                                          CancellationToken   cancellationToken = default)
     {
         using HttpResponseMessage resp = await httpClient.PostAsync("users",
@@ -19,28 +21,74 @@ public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logge
             return Enumerable.Empty<PlayerResponse>();
         }
 
+        logger.LogDebug("Starting building players");
         List<PlayerResponse> composedPlayers = new(usersResponse.Count);
-        foreach (UsersByIdResponse userResponse in usersResponse)
-        {
-            IReadOnlyList<RatingHistory>       ratingsHistories     = await GetRatingsHistoriesAsync(userResponse.Id, cancellationToken);
-            IReadOnlyList<GamesList>           gamesLists           = GetGamesListsAsync();
-            IReadOnlyList<Statistic>           statistics           = GetStatistics();
-            IReadOnlyList<TournamentStatistic> tournamentStatistics = GetTournamentStatistics();
-            IReadOnlyList<TeamResponse>        teams                = GetTeams();
+        composedPlayers = await BuildPlayersAsync(composedPlayers);
 
-            PlayerResponse composedPlayer = new(
-                userResponse.Username,
-                userResponse.Id,
-                ratingsHistories,
-                gamesLists,
-                statistics,
-                tournamentStatistics,
-                teams);
-
-            composedPlayers.Add(composedPlayer);
-        }
+        logger.LogDebug("Finished building players");
 
         return composedPlayers;
+
+        async Task<List<PlayerResponse>> BuildPlayersAsync(List<PlayerResponse> players)
+        {
+            foreach (UsersByIdResponse userResponse in usersResponse)
+            {
+                var ratingsHistories     = (IReadOnlyList<RatingHistory>)Enumerable.Empty<RatingHistory>();
+                var gamesLists           = (IReadOnlyList<GamesList>)Enumerable.Empty<GamesList>();
+                var statistics           = (IReadOnlyList<Statistic>)Enumerable.Empty<Statistic>();
+                var tournamentStatistics = (IReadOnlyList<TournamentStatistic>)Enumerable.Empty<TournamentStatistic>();
+                var teams                = (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
+                foreach (PlayerStat stat in stats)
+                {
+                    switch (stat)
+                    {
+                        case PlayerStat.Ratings:
+                            logger.LogDebug("Starting getting ratings histories");
+                            ratingsHistories = await GetRatingsHistoriesAsync(userResponse.Id, categories, cancellationToken);
+
+                            break;
+                        case PlayerStat.GamesHistory:
+                            logger.LogDebug("Starting getting games history");
+                            gamesLists = GetGamesListsAsync();
+
+                            break;
+                        case PlayerStat.AllGameStats:
+                            logger.LogDebug("Starting getting all games stats");
+                            statistics = GetStatistics();
+
+                            break;
+                        case PlayerStat.TournamentsStats:
+                            logger.LogDebug("Starting getting tournaments stats");
+                            tournamentStatistics = GetTournamentStatistics();
+
+                            break;
+                        case PlayerStat.Teams:
+                            logger.LogDebug("Starting getting teams");
+                            teams = GetTeams();
+
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(stats));
+                    }
+                }
+
+                PlayerResponse composedPlayer = new(
+                    userResponse.Username,
+                    userResponse.Id,
+                    ratingsHistories,
+                    gamesLists,
+                    statistics,
+                    tournamentStatistics,
+                    teams);
+
+                logger.LogDebug("Composed player: {@Player}", composedPlayer);
+                players.Add(composedPlayer);
+            }
+
+            logger.LogDebug("Finished building players");
+
+            return players;
+        }
     }
 
     private IReadOnlyList<TournamentStatistic> GetTournamentStatistics()
@@ -58,7 +106,10 @@ public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logge
         return (IReadOnlyList<GamesList>)Enumerable.Empty<GamesList>();
     }
 
-    private async Task<IReadOnlyList<RatingHistory>> GetRatingsHistoriesAsync(string userId, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<RatingHistory>> GetRatingsHistoriesAsync(
+        string                    userId,
+        IEnumerable<PlayCategory> categories,
+        CancellationToken         cancellationToken)
     {
         var ratings = await httpClient.GetFromJsonAsync<List<RatingHistoryResponse>>($"user/{userId}/rating-history",
                                                                                      cancellationToken);
@@ -67,14 +118,19 @@ public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logge
             return (IReadOnlyList<RatingHistory>)Enumerable.Empty<RatingHistory>();
         }
 
-        List<RatingHistory> ratingHistories = [ ];
-        ratingHistories.AddRange(ratings.Select(ratingResponse => new RatingHistory(
-                                                    ratingResponse.Category.ToCategoryEnum(),
-                                                    ratingResponse.PointsPerDate.Select(BuildRating))));
+        List<RatingHistory> ratingHistories =
+        [
+            ..ratings.Where(r => Enum.TryParse(r.Category, out PlayCategory parsed)
+                              && categories.Contains(parsed))
+                     .Select(r => new RatingHistory(Enum.Parse<PlayCategory>(r.Category),
+                                                    r.PointsPerDate.Select(BuildRating)))
+        ];
+
+        logger.LogDebug("Got ratings histories: {@Ratings}", ratingHistories);
 
         return ratingHistories;
 
-        RatingPerDate BuildRating(IReadOnlyList<int> pointPerDate)
+        static RatingPerDate BuildRating(IReadOnlyList<int> pointPerDate)
         {
             return new RatingPerDate(pointPerDate[3],
                                      new DateOnly(year: pointPerDate[0],
