@@ -76,6 +76,7 @@ builder.Services.AddLichessAuthentication();
 builder.Services.AddTransient<UsersRepository>();
 builder.Services.AddTransient<AnalyticsListsService>();
 builder.Services.AddTransient<AuthService>();
+builder.Services.AddTransient<CachedDataService>();
 
 IConfigurationSection redisCacheSection = builder.Configuration.GetSection("RedisSettings");
 builder.Services.Configure<CacheOptions>(redisCacheSection);

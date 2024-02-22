@@ -1,4 +1,5 @@
-﻿using Backend.Auth;
+﻿using Backend.Api.RequestModels;
+using Backend.Auth;
 using Backend.DataManagement.Users.Entities;
 using Backend.DataManagement.Users.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -15,9 +16,8 @@ public class AnalyticListsController(
     [HttpPost("lists")]
     [Authorize(AuthExtensions.LichessAuthPolicyName)]
     public async Task<ActionResult<AnalyticsList>> CreateByPlayers(
-        [FromBody] string              name,
-        [FromBody] ICollection<string> playersIds,
-        CancellationToken              cancellationToken)
+        [FromBody] CreateListRequestBodyModel requestBody,
+        CancellationToken                     cancellationToken)
     {
         User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
         if (creator is null)
@@ -25,14 +25,15 @@ public class AnalyticListsController(
             return Forbid();
         }
 
-        AnalyticsList? list = await listsService.CreateByPlayersAsync(Guid.NewGuid(),
-                                                                      name,
-                                                                      creator,
-                                                                      playersIds,
-                                                                      cancellationToken);
+        (AnalyticsList? list, string message) = await listsService.CreateByPlayersAsync(
+                                                    Guid.NewGuid(),
+                                                    requestBody.Name,
+                                                    creator,
+                                                    requestBody.PlayersIds,
+                                                    cancellationToken);
         if (list is null)
         {
-            return Conflict($"Max lists limit: {creator.MaxListsCount} reached! Unable to create");
+            return Conflict(message);
         }
 
         return Ok(list);
