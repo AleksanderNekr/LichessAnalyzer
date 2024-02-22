@@ -64,7 +64,7 @@ public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logge
                             break;
                         case PlayerStat.Teams:
                             logger.LogDebug("Starting getting teams");
-                            teams = GetTeams();
+                            teams = GetPlayerTeams();
 
                             break;
                         default:
@@ -89,6 +89,11 @@ public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logge
 
             return players;
         }
+    }
+
+    private IReadOnlyList<TeamResponse> GetPlayerTeams()
+    {
+        return (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
     }
 
     private IReadOnlyList<TournamentStatistic> GetTournamentStatistics()
@@ -139,7 +144,10 @@ public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logge
         }
     }
 
-    public IReadOnlyList<TeamResponse> GetTeams(params string[] ids)
+    public IReadOnlyList<TeamResponse> GetTeams(
+        IEnumerable<string> ids,
+        bool                withParticipants,
+        bool                withTournaments)
     {
         return (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
     }
