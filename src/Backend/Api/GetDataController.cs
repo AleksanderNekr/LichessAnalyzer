@@ -27,4 +27,16 @@ public class GetDataController(GetDataService getDataService) : Controller
     }
 
 
+    [HttpGet("teams")]
+    public Task<ActionResult<IEnumerable<TeamResponse>>> GetTeamsInfo(
+        [FromQuery] IEnumerable<string> ids,
+        [FromQuery] bool                withParticipants  = false,
+        [FromQuery] bool                withTournaments   = false)
+    {
+        IEnumerable<TeamResponse> teams = getDataService.GetTeams(ids,
+                                                                  withParticipants,
+                                                                  withTournaments);
+
+        return Task.FromResult<ActionResult<IEnumerable<TeamResponse>>>(Ok(teams));
+    }
 }
