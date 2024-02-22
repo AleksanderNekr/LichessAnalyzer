@@ -4,8 +4,7 @@ public static class AuthExtensions
 {
     internal const string LichessAuthPolicyName = "lichess-user";
     internal const string AuthenticationScheme  = "lichess-oauth";
-
-    private const string CookieScheme         = "lichess-cookie";
+    internal const string CookieScheme          = "lichess-cookie";
 
     public static void AddLichessAuthentication(this IServiceCollection services)
     {
