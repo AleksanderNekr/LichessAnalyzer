@@ -10,5 +10,5 @@ public class AnalyticsList(Guid id, string name, Guid creatorId)
 
     public User Creator { get; set; } = default!;
 
-    public IEnumerable<Player> ListedPlayers { get; set; } = default!;
+    public ICollection<Player> ListedPlayers { get; set; } = [];
 }

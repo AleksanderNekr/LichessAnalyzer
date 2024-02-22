@@ -10,7 +10,7 @@ public class User(Guid id, string name)
 
     public int MaxListsCount { get; set; } = 30;
 
-    public List<AnalyticsList> AnalyticsLists { get; set; } = default!;
+    public ICollection<AnalyticsList> AnalyticsLists { get; set; } = [];
 
-    public List<Team> OrganisedTeams { get; set; } = default!;
+    public ICollection<Team> OrganisedTeams { get; set; } = [];
 }
