@@ -1,5 +1,6 @@
 ﻿using Backend.Auth;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Api;
@@ -15,6 +16,7 @@ public class UsersController : Controller
     }
 
     [HttpGet("/logout")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
     public IActionResult Logout()
     {
         return SignOut(new AuthenticationProperties { RedirectUri = "/" }, AuthExtensions.CookieScheme);
