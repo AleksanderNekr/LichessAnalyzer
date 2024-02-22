@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.DataManagement.Users.Services;
 
-public class UsersManagementService(UsersContext context, ILogger<UsersManagementService> logger)
+public class UsersRepository(UsersContext context, ILogger<UsersRepository> logger)
 {
     public async ValueTask<User?> FindByIdAsync(
         Guid              id,

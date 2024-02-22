@@ -73,7 +73,7 @@ builder.Services.AddHttpClient<GetDataService>(
 
 builder.Services.AddLichessAuthentication();
 
-builder.Services.AddTransient<UsersManagementService>();
+builder.Services.AddTransient<UsersRepository>();
 builder.Services.AddTransient<AnalyticsListsService>();
 builder.Services.AddTransient<AuthService>();
 

@@ -5,14 +5,14 @@ using Backend.DataManagement.Users.Services;
 namespace Backend.Auth;
 
 public class AuthService(
-    UsersManagementService usersManagementService,
+    UsersRepository usersRepository,
     ILogger<AuthService>   logger)
 {
     public async Task RegisterUserAsync(ClaimsPrincipal user, CancellationToken cancellationToken = default)
     {
         string username = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        User? registered = await usersManagementService.TryCreateUserAsync(
+        User? registered = await usersRepository.TryCreateUserAsync(
                                Guid.NewGuid(),
                                username,
                                cancellationToken);
@@ -32,7 +32,7 @@ public class AuthService(
             return DeleteUserResult.NotAuthenticated;
         }
 
-        User? user = await usersManagementService.FindByNameAsync(username, cancellationToken: cancellationToken);
+        User? user = await usersRepository.FindByNameAsync(username, cancellationToken: cancellationToken);
         if (user is null)
         {
             logger.LogWarning("User {Name} is not in DB", username);
@@ -40,7 +40,7 @@ public class AuthService(
             return DeleteUserResult.UserNotInDb;
         }
 
-        bool deleted = await usersManagementService.TryDeleteUserAsync(user.Id, cancellationToken);
+        bool deleted = await usersRepository.TryDeleteUserAsync(user.Id, cancellationToken);
         if (deleted)
         {
             logger.LogDebug("User {Id}:{Name} deleted", user.Id, user.Name);
