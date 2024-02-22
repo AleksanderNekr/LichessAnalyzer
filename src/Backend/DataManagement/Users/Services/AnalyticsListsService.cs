@@ -6,11 +6,11 @@ namespace Backend.DataManagement.Users.Services;
 public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsService> logger)
 {
     public async Task<AnalyticsList?> CreateByPlayersAsync(
-        Guid              listId,
-        string            listName,
-        User              creator,
-        CancellationToken cancellationToken = default,
-        params string[]   playersIds)
+        Guid                listId,
+        string              listName,
+        User                creator,
+        ICollection<string> playersIds,
+        CancellationToken   cancellationToken = default)
     {
         if (await ListsLimitReachedAsync())
         {
@@ -20,7 +20,7 @@ public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsS
         }
 
         AnalyticsList list = new(listId, listName, creator.Id);
-        if (playersIds.Length > 0)
+        if (playersIds.Count > 0)
         {
             list.ListedPlayers = playersIds.Select(playerId => new Player(playerId, listId));
         }
