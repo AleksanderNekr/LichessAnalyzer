@@ -52,6 +52,17 @@ public class AuthService(
 
         return DeleteUserResult.Fail;
     }
+
+    public async Task<User?> GetCurrentUserAsync(ClaimsPrincipal claims, CancellationToken cancellationToken)
+    {
+        string? username = claims.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (username is null)
+        {
+            return null;
+        }
+        
+        return await usersRepository.FindByNameAsync(username, cancellationToken: cancellationToken);
+    }
 }
 
 public enum DeleteUserResult
