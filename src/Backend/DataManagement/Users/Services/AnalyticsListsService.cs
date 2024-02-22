@@ -1,11 +1,16 @@
-﻿using Backend.DataManagement.Users.Entities;
+﻿using Backend.DataManagement.LichessApi;
+using Backend.DataManagement.LichessApi.ServiceResponsesModels;
+using Backend.DataManagement.Users.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.DataManagement.Users.Services;
 
-public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsService> logger)
+public class AnalyticsListsService(
+    UsersContext                   context,
+    CachedDataService              cachedDataService,
+    ILogger<AnalyticsListsService> logger)
 {
-    public async Task<AnalyticsList?> CreateByPlayersAsync(
+    public async Task<(AnalyticsList?, string)> CreateByPlayersAsync(
         Guid                listId,
         string              listName,
         User                creator,
@@ -16,19 +21,35 @@ public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsS
         {
             logger.LogDebug("Max lists limit reached for user: {Name}", creator.Name);
 
-            return null;
+            return (null, $"Max lists limit: {creator.MaxListsCount} reached! Unable to create");
+        }
+
+        if (await ListNameTakenAsync())
+        {
+            logger.LogDebug("List with Name {ListName} exists for user {Id}:{Name}",
+                            listName,
+                            creator.Id,
+                            creator.Name);
+
+            return (null, $"List with Name {listName} already exists in your collection");
         }
 
         AnalyticsList list = new(listId, listName, creator.Id);
         if (playersIds.Count > 0)
         {
-            list.ListedPlayers = playersIds.Select(playerId => new Player(playerId, listId));
+            IEnumerable<PlayerResponse> cachedPlayers = await cachedDataService.GetChessPlayersAsync(
+                                                            playersIds.ToList(),
+                                                            [ ],
+                                                            [ ],
+                                                            cancellationToken);
+            list.ListedPlayers = cachedPlayers.Select(player => new Player(player.Id, listId))
+                                              .ToList();
         }
 
         await context.AnalyticsLists.AddAsync(list, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
 
-        return list;
+        return (list, string.Empty);
 
         async Task<bool> ListsLimitReachedAsync()
         {
@@ -37,6 +58,14 @@ public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsS
                        l => l.CreatorId == creator.Id,
                        cancellationToken)
                 >= creator.MaxListsCount;
+        }
+
+        async Task<bool> ListNameTakenAsync()
+        {
+            return await context.AnalyticsLists.SingleOrDefaultAsync(
+                           l => l.Name == listName,
+                           cancellationToken)
+                       is not null;
         }
     }
 
@@ -88,9 +117,16 @@ public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsS
             return list;
         }
 
-        list.ListedPlayers = list.ListedPlayers.Concat(playersIds
+
+        IEnumerable<PlayerResponse> cachedPlayers = await cachedDataService.GetChessPlayersAsync(
+                                                        playersIds.ToList(),
+                                                        [ ],
+                                                        [ ],
+                                                        cancellationToken);
+        list.ListedPlayers = list.ListedPlayers.Concat(cachedPlayers
                                                       .Take(RemainCapacity())
-                                                      .Select(playerId => new Player(playerId, list.Id)));
+                                                      .Select(player => new Player(player.Id, list.Id)))
+                                 .ToList();
         await context.SaveChangesAsync(cancellationToken);
 
         return list;
@@ -101,16 +137,17 @@ public class AnalyticsListsService(UsersContext context, ILogger<AnalyticsListsS
     }
 
     public async Task<AnalyticsList> DeletePlayersAsync(
-        AnalyticsList     list,
-        CancellationToken cancellationToken = default,
-        params string[]   playersIds)
+        AnalyticsList       list,
+        ICollection<string> playersIds,
+        CancellationToken   cancellationToken = default)
     {
-        if (playersIds.Length == 0)
+        if (playersIds.Count > 0)
         {
             return list;
         }
 
-        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(player.Id));
+        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(player.Id))
+                                 .ToList();
         await context.SaveChangesAsync(cancellationToken);
 
         return list;
