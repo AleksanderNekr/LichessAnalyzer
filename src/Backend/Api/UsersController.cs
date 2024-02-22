@@ -13,4 +13,10 @@ public class UsersController : Controller
     {
         return Challenge(new AuthenticationProperties { RedirectUri = "/" }, AuthExtensions.AuthenticationScheme);
     }
+
+    [HttpGet("/logout")]
+    public IActionResult Logout()
+    {
+        return SignOut(new AuthenticationProperties { RedirectUri = "/" }, AuthExtensions.CookieScheme);
+    }
 }
