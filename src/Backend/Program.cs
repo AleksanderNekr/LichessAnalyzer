@@ -100,6 +100,9 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 app.MapHealthChecks("/_health",
                     new HealthCheckOptions
