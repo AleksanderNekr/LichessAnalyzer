@@ -1,14 +1,14 @@
-﻿using Backend.DataManagement.Users.Entities;
+﻿using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 
 namespace Backend.DataManagement.Analytics;
 
 public interface IAnalyticsCacheService
 {
-    public Task<bool> CachePlayerAsync(Player player);
+    public Task<bool> CachePlayerAsync(PlayerResponse player);
 
-    public Task<Player?> ExtractPlayerAsync(string playerId);
+    public Task<PlayerResponse?> ExtractPlayerAsync(string playerId);
 
-    public Task<bool> CacheTeamAsync(Team team);
+    public Task<bool> CacheTeamAsync(TeamResponse team);
 
-    public Task<Team?> ExtractTeamAsync(string playerId);
+    public Task<TeamResponse?> ExtractTeamAsync(string playerId);
 }
