@@ -17,7 +17,7 @@ public class LichessOAuthHandler(
     IOptionsMonitor<LichessOAuthOptions> options,
     ILoggerFactory                       loggerFactory,
     UrlEncoder                           encoder,
-    UsersManagementService               usersManagementService,
+    AuthService                          authService,
     ILogger<LichessOAuthHandler>         logger)
     : OAuthHandler<LichessOAuthOptions>(options, loggerFactory, encoder)
 {
@@ -49,7 +49,7 @@ public class LichessOAuthHandler(
         AuthenticationTicket ticket = new(ticketContext.Principal!, ticketContext.Properties, Scheme.Name);
         logger.LogInformation("Ticket created: {Ticket}", ticket.ToString());
 
-        await RegisterUserAsync();
+        await authService.RegisterUserAsync(user);
 
         return ticket;
 
@@ -58,20 +58,6 @@ public class LichessOAuthHandler(
             return !string.IsNullOrEmpty(Options.UserEmailsEndpoint)
                 && !identity.HasClaim(claim => claim.Type == ClaimTypes.Email)
                 && Options.Scope.Contains("email:read");
-        }
-
-        async Task RegisterUserAsync()
-        {
-            string username = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-            User? registered = await usersManagementService.TryCreateUserAsync(
-                                   Guid.NewGuid(),
-                                   username,
-                                   CancellationToken.None);
-            if (registered is not null)
-            {
-                logger.LogDebug("Successfully registered {@User}", registered);
-            }
         }
     }
 

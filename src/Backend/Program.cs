@@ -75,6 +75,7 @@ builder.Services.AddLichessAuthentication();
 
 builder.Services.AddTransient<UsersManagementService>();
 builder.Services.AddTransient<AnalyticsListsService>();
+builder.Services.AddTransient<AuthService>();
 
 IConfigurationSection redisCacheSection = builder.Configuration.GetSection("RedisSettings");
 builder.Services.Configure<CacheOptions>(redisCacheSection);
@@ -86,24 +87,29 @@ builder.Services.AddHealthChecks()
 
 WebApplication app = builder.Build();
 
+app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseReDoc(options => options.RoutePrefix = "api");
 }
 
 app.UseHttpsRedirection();
 
-app.UseRouting()
-   .UseEndpoints(static endpoints =>
-                 {
-                     endpoints.MapControllers();
-                     endpoints.MapHealthChecks("/_health",
-                                               new HealthCheckOptions
-                                               {
-                                                   ResponseWriter = WriteCheckResponse
-                                               });
-                 });
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+app.MapHealthChecks("/_health",
+                    new HealthCheckOptions
+                    {
+                        ResponseWriter = WriteCheckResponse
+                    });
 
 app.UseHttpLogging();
 
