@@ -1,4 +1,6 @@
-﻿namespace Backend.DataManagement.Users.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace Backend.DataManagement.Users.Entities;
 
 public class Team(string id, Guid organiserId)
 {
@@ -6,5 +8,6 @@ public class Team(string id, Guid organiserId)
 
     public Guid OrganiserId { get; set; } = organiserId;
 
+    [JsonIgnore]
     public User Organiser { get; set; } = default!;
 }
