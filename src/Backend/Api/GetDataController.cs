@@ -7,7 +7,7 @@ namespace Backend.Api;
 
 [ApiController]
 [Route("api")]
-public class GetDataController(GetDataService getDataService) : Controller
+public class GetDataController(DataService dataService) : Controller
 {
     [HttpGet("players")]
     public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetPlayersInfo(
@@ -18,10 +18,10 @@ public class GetDataController(GetDataService getDataService) : Controller
     {
         List<PlayerStat>   stats      = (withStats      ?? Enumerable.Empty<PlayerStat>()).ToList();
         List<PlayCategory> categories = (withCategories ?? Enum.GetValues<PlayCategory>()).ToList();
-        IEnumerable<PlayerResponse>? players = await getDataService.GetChessPlayersAsync(ids,
-                                                                                         stats,
-                                                                                         categories,
-                                                                                         cancellationToken);
+        IEnumerable<PlayerResponse>? players = await dataService.GetChessPlayersAsync(ids,
+                                                                                     stats,
+                                                                                     categories,
+                                                                                     cancellationToken);
 
         return Ok(players);
     }
@@ -30,12 +30,12 @@ public class GetDataController(GetDataService getDataService) : Controller
     [HttpGet("teams")]
     public Task<ActionResult<IEnumerable<TeamResponse>>> GetTeamsInfo(
         [FromQuery] IEnumerable<string> ids,
-        [FromQuery] bool                withParticipants  = false,
-        [FromQuery] bool                withTournaments   = false)
+        [FromQuery] bool                withParticipants = false,
+        [FromQuery] bool                withTournaments  = false)
     {
-        IEnumerable<TeamResponse> teams = getDataService.GetTeams(ids,
-                                                                  withParticipants,
-                                                                  withTournaments);
+        IEnumerable<TeamResponse> teams = dataService.GetTeams(ids,
+                                                               withParticipants,
+                                                               withTournaments);
 
         return Task.FromResult<ActionResult<IEnumerable<TeamResponse>>>(Ok(teams));
     }

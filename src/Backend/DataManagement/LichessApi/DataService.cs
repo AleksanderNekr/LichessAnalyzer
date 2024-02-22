@@ -3,7 +3,7 @@ using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 
 namespace Backend.DataManagement.LichessApi;
 
-public class GetDataService(HttpClient httpClient, ILogger<GetDataService> logger)
+public class DataService(HttpClient httpClient, ILogger<DataService> logger)
 {
     public async Task<IEnumerable<PlayerResponse>?> GetChessPlayersAsync(IEnumerable<string> ids,
                                                                          List<PlayerStat>    stats,
