@@ -98,16 +98,14 @@ else
 
 app.UseHttpsRedirection();
 
-app.UseRouting()
-   .UseEndpoints(static endpoints =>
-                 {
-                     endpoints.MapControllers();
-                     endpoints.MapHealthChecks("/_health",
-                                               new HealthCheckOptions
-                                               {
-                                                   ResponseWriter = WriteCheckResponse
-                                               });
-                 });
+app.UseRouting();
+
+app.MapControllers();
+app.MapHealthChecks("/_health",
+                    new HealthCheckOptions
+                    {
+                        ResponseWriter = WriteCheckResponse
+                    });
 
 app.UseHttpLogging();
 
