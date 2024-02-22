@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Backend.DataManagement.Users.Entities;
+using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -19,9 +19,9 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
         _logger.LogDebug("Connected to Redis");
     }
 
-    public async Task<bool> CachePlayerAsync(Player player)
+    public async Task<bool> CachePlayerAsync(PlayerResponse player)
     {
-        var    key   = $"player:{player.Id}";
+        var    key   = $"player:{player.Id.ToLowerInvariant()}";
         string value = JsonSerializer.Serialize(player);
 
         bool isSet = await _db.StringSetAsync(key, value);
@@ -38,15 +38,15 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
         return isSet;
     }
 
-    public async Task<Player?> ExtractPlayerAsync(string playerId)
+    public async Task<PlayerResponse?> ExtractPlayerAsync(string playerId)
     {
-        var key = $"player:{playerId}";
+        var key = $"player:{playerId.ToLowerInvariant()}";
         _logger.LogDebug("Trying to get Player by: {Key}", key);
         RedisValue value = await _db.StringGetAsync(key);
 
         if (value.HasValue)
         {
-            var result = JsonSerializer.Deserialize<Player>(value.ToString());
+            var result = JsonSerializer.Deserialize<PlayerResponse>(value.ToString());
             _logger.LogDebug("Deserialized Value: {@Value}", result);
 
             return result;
@@ -57,9 +57,9 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
         return null;
     }
 
-    public async Task<bool> CacheTeamAsync(Team team)
+    public async Task<bool> CacheTeamAsync(TeamResponse team)
     {
-        var    key   = $"team:{team.Id}";
+        var    key   = $"team:{team.Id.ToLowerInvariant()}";
         string value = JsonSerializer.Serialize(team);
 
         bool isSet = await _db.StringSetAsync(key, value);
@@ -76,15 +76,15 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
         return isSet;
     }
 
-    public async Task<Team?> ExtractTeamAsync(string playerId)
+    public async Task<TeamResponse?> ExtractTeamAsync(string playerId)
     {
-        var key = $"team:{playerId}";
+        var key = $"team:{playerId.ToLowerInvariant()}";
         _logger.LogDebug("Trying to get Team by: {Key}", key);
         RedisValue value = await _db.StringGetAsync(key);
 
         if (value.HasValue)
         {
-            var result = JsonSerializer.Deserialize<Team>(value.ToString());
+            var result = JsonSerializer.Deserialize<TeamResponse>(value.ToString());
             _logger.LogDebug("Deserialized Value: {@Value}", result);
 
             return result;
