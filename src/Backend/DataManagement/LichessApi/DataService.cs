@@ -5,10 +5,10 @@ namespace Backend.DataManagement.LichessApi;
 
 public class DataService(HttpClient httpClient, ILogger<DataService> logger)
 {
-    public async Task<IEnumerable<PlayerResponse>?> GetChessPlayersAsync(IEnumerable<string> ids,
-                                                                         List<PlayerStat>    stats,
-                                                                         List<PlayCategory>  categories,
-                                                                         CancellationToken   cancellationToken = default)
+    public async Task<IEnumerable<PlayerResponse>> GetChessPlayersAsync(IEnumerable<string> ids,
+                                                                        List<PlayerStat>    stats,
+                                                                        List<PlayCategory>  categories,
+                                                                        CancellationToken   cancellationToken = default)
     {
         using HttpResponseMessage resp = await httpClient.PostAsync("users",
                                                                     new StringContent(string.Join(',', ids)),
@@ -91,6 +91,57 @@ public class DataService(HttpClient httpClient, ILogger<DataService> logger)
         }
     }
 
+    public async Task<IEnumerable<PlayerResponse>> GetChessPlayersAsync(IEnumerable<string> ids,
+                                                                        CancellationToken   cancellationToken = default)
+    {
+        using HttpResponseMessage resp = await httpClient.PostAsync("users",
+                                                                    new StringContent(string.Join(',', ids)),
+                                                                    cancellationToken);
+
+        resp.EnsureSuccessStatusCode();
+        var usersResponse = await resp.Content.ReadFromJsonAsync<List<UsersByIdResponse>>(cancellationToken);
+        if (usersResponse is null)
+        {
+            return Enumerable.Empty<PlayerResponse>();
+        }
+
+        logger.LogDebug("Starting building players");
+        List<PlayerResponse> composedPlayers = new(usersResponse.Count);
+        composedPlayers = await BuildPlayersAsync(composedPlayers);
+
+        logger.LogDebug("Finished building players");
+
+        return composedPlayers;
+
+        async Task<List<PlayerResponse>> BuildPlayersAsync(List<PlayerResponse> players)
+        {
+            foreach (UsersByIdResponse userResponse in usersResponse)
+            {
+                IReadOnlyList<RatingHistory>       ratingsHistories     = await GetRatingsHistoriesAsync(userResponse.Id, cancellationToken);
+                IReadOnlyList<GamesList>           gamesLists           = GetGamesListsAsync();
+                IReadOnlyList<Statistic>           statistics           = GetStatistics();
+                IReadOnlyList<TournamentStatistic> tournamentStatistics = GetTournamentStatistics();
+                IReadOnlyList<TeamResponse>        teams                = GetPlayerTeams();
+
+                PlayerResponse composedPlayer = new(
+                    userResponse.Username,
+                    userResponse.Id,
+                    ratingsHistories,
+                    gamesLists,
+                    statistics,
+                    tournamentStatistics,
+                    teams);
+
+                logger.LogDebug("Composed player: {@Player}", composedPlayer);
+                players.Add(composedPlayer);
+            }
+
+            logger.LogDebug("Finished building players");
+
+            return players;
+        }
+    }
+
     private IReadOnlyList<TeamResponse> GetPlayerTeams()
     {
         return (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
@@ -127,6 +178,37 @@ public class DataService(HttpClient httpClient, ILogger<DataService> logger)
         [
             ..ratings.Where(r => Enum.TryParse(r.Category, out PlayCategory parsed)
                               && categories.Contains(parsed))
+                     .Select(r => new RatingHistory(Enum.Parse<PlayCategory>(r.Category),
+                                                    r.PointsPerDate.Select(BuildRating)))
+        ];
+
+        logger.LogDebug("Got ratings histories: {@Ratings}", ratingHistories);
+
+        return ratingHistories;
+
+        static RatingPerDate BuildRating(IReadOnlyList<int> pointPerDate)
+        {
+            return new RatingPerDate(pointPerDate[3],
+                                     new DateOnly(year: pointPerDate[0],
+                                                  month: pointPerDate[1] + 1,
+                                                  day: pointPerDate[2]));
+        }
+    }
+
+    private async Task<IReadOnlyList<RatingHistory>> GetRatingsHistoriesAsync(
+        string            userId,
+        CancellationToken cancellationToken)
+    {
+        var ratings = await httpClient.GetFromJsonAsync<List<RatingHistoryResponse>>($"user/{userId}/rating-history",
+                                                                                     cancellationToken);
+        if (ratings is null)
+        {
+            return (IReadOnlyList<RatingHistory>)Enumerable.Empty<RatingHistory>();
+        }
+
+        List<RatingHistory> ratingHistories =
+        [
+            ..ratings.Where(r => Enum.TryParse<PlayCategory>(r.Category, out _))
                      .Select(r => new RatingHistory(Enum.Parse<PlayCategory>(r.Category),
                                                     r.PointsPerDate.Select(BuildRating)))
         ];

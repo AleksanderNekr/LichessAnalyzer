@@ -18,7 +18,7 @@ public class GetDataController(DataService dataService) : Controller
     {
         List<PlayerStat>   stats      = (withStats      ?? Enumerable.Empty<PlayerStat>()).ToList();
         List<PlayCategory> categories = (withCategories ?? Enum.GetValues<PlayCategory>()).ToList();
-        IEnumerable<PlayerResponse>? players = await dataService.GetChessPlayersAsync(ids,
+        IEnumerable<PlayerResponse> players = await dataService.GetChessPlayersAsync(ids,
                                                                                      stats,
                                                                                      categories,
                                                                                      cancellationToken);
