@@ -21,7 +21,7 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
 
     public async Task<bool> CachePlayerAsync(PlayerResponse player)
     {
-        var    key   = $"player:{player.Id}";
+        var    key   = $"player:{player.Id.ToLowerInvariant()}";
         string value = JsonSerializer.Serialize(player);
 
         bool isSet = await _db.StringSetAsync(key, value);
@@ -40,7 +40,7 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
 
     public async Task<PlayerResponse?> ExtractPlayerAsync(string playerId)
     {
-        var key = $"player:{playerId}";
+        var key = $"player:{playerId.ToLowerInvariant()}";
         _logger.LogDebug("Trying to get Player by: {Key}", key);
         RedisValue value = await _db.StringGetAsync(key);
 
@@ -59,7 +59,7 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
 
     public async Task<bool> CacheTeamAsync(TeamResponse team)
     {
-        var    key   = $"team:{team.Id}";
+        var    key   = $"team:{team.Id.ToLowerInvariant()}";
         string value = JsonSerializer.Serialize(team);
 
         bool isSet = await _db.StringSetAsync(key, value);
@@ -78,7 +78,7 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
 
     public async Task<TeamResponse?> ExtractTeamAsync(string playerId)
     {
-        var key = $"team:{playerId}";
+        var key = $"team:{playerId.ToLowerInvariant()}";
         _logger.LogDebug("Trying to get Team by: {Key}", key);
         RedisValue value = await _db.StringGetAsync(key);
 
