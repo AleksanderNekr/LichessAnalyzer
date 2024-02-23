@@ -83,7 +83,7 @@ public class AnalyticListsController(
         User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
         if (creator is null)
         {
-            return Forbid();
+            return Forbid(AuthExtensions.AuthenticationScheme);
         }
 
         (AnalyticsList? list, string message) = await listsRepository.CreateByPlayersAsync(
@@ -97,7 +97,7 @@ public class AnalyticListsController(
             return Conflict(message);
         }
 
-        return Ok(list);
+        return Created("/api/lists/" + list.Id, list);
     }
 
     private async Task<Guid> GetCurrentUserIdAsync(CancellationToken cancellationToken)
