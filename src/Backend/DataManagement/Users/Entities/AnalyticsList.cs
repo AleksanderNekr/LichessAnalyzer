@@ -13,5 +13,5 @@ public class AnalyticsList(Guid id, string name, Guid creatorId)
     [JsonIgnore]
     public User Creator { get; set; } = default!;
 
-    public ICollection<Player> ListedPlayers { get; set; } = [];
+    public ICollection<Player>? ListedPlayers { get; set; }
 }
