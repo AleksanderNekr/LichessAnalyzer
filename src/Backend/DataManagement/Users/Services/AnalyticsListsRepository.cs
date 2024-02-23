@@ -5,11 +5,42 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.DataManagement.Users.Services;
 
-public class AnalyticsListsService(
-    UsersContext                   context,
-    CachedDataService              cachedDataService,
-    ILogger<AnalyticsListsService> logger)
+public class AnalyticsListsRepository(
+    UsersContext                      context,
+    CachedDataService                 cachedDataService,
+    ILogger<AnalyticsListsRepository> logger)
 {
+    public async ValueTask<AnalyticsList?> GetByIdAsync(User owner, Guid id, CancellationToken cancellationToken)
+    {
+        return owner.AnalyticsLists?.SingleOrDefault(list => list.Id == id)
+            ?? await context.AnalyticsLists.FindAsync([ id ], cancellationToken);
+    }
+
+    public async ValueTask<AnalyticsList?> GetByIdWithPlayersAsync(User owner, Guid id, CancellationToken cancellationToken)
+    {
+        return owner.AnalyticsLists?.AsQueryable()
+                    .Include(list => list.ListedPlayers)
+                    .SingleOrDefault(list => list.Id == id)
+            ?? await context.AnalyticsLists.Include(list => list.ListedPlayers)
+                            .SingleOrDefaultAsync(list => list.Id == id, cancellationToken);
+    }
+
+    public IQueryable<AnalyticsList> GetAll(User owner)
+    {
+        return owner.AnalyticsLists?.AsQueryable()
+            ?? context.AnalyticsLists.Where(list => list.CreatorId == owner.Id);
+    }
+
+    public IQueryable<AnalyticsList> GetAllWithPlayers(User owner)
+    {
+        return owner.AnalyticsLists?
+                    .AsQueryable()
+                    .Include(list => list.ListedPlayers)
+            ?? context.AnalyticsLists
+                      .Include(list => list.ListedPlayers)
+                      .Where(list => list.CreatorId == owner.Id);
+    }
+
     public async Task<(AnalyticsList?, string)> CreateByPlayersAsync(
         Guid                listId,
         string              listName,
@@ -53,11 +84,9 @@ public class AnalyticsListsService(
 
         async Task<bool> ListsLimitReachedAsync()
         {
-            return creator.AnalyticsLists.Count == creator.MaxListsCount
-                || await context.AnalyticsLists.CountAsync(
-                       l => l.CreatorId == creator.Id,
-                       cancellationToken)
-                >= creator.MaxListsCount;
+            return creator.AnalyticsLists is null
+                && await CountCreatorsListsAsync() >= creator.MaxListsCount
+                || creator.AnalyticsLists?.Count >= creator.MaxListsCount;
         }
 
         async Task<bool> ListNameTakenAsync()
@@ -66,6 +95,12 @@ public class AnalyticsListsService(
                            l => l.Name == listName,
                            cancellationToken)
                        is not null;
+        }
+
+        Task<int> CountCreatorsListsAsync()
+        {
+            return context.AnalyticsLists.CountAsync(l => l.CreatorId == creator.Id,
+                                                     cancellationToken);
         }
     }
 
@@ -123,6 +158,10 @@ public class AnalyticsListsService(
                                                         [ ],
                                                         [ ],
                                                         cancellationToken);
+
+        list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
+                                      .ToList();
+
         list.ListedPlayers = list.ListedPlayers.Concat(cachedPlayers
                                                       .Take(RemainCapacity())
                                                       .Select(player => new Player(player.Id, list.Id)))
@@ -145,6 +184,9 @@ public class AnalyticsListsService(
         {
             return list;
         }
+
+        list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
+                                      .ToList();
 
         list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(player.Id))
                                  .ToList();

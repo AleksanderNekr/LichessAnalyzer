@@ -10,8 +10,9 @@ namespace Backend.Api;
 [ApiController]
 [Route("api")]
 public class AnalyticListsController(
-    AuthService           authService,
-    AnalyticsListsService listsService) : Controller
+    AuthService                      authService,
+    AnalyticsListsRepository         listsRepository,
+    ILogger<AnalyticListsController> logger) : Controller
 {
     [HttpPost("players-lists")]
     [Authorize(AuthExtensions.LichessAuthPolicyName)]
@@ -25,7 +26,7 @@ public class AnalyticListsController(
             return Forbid();
         }
 
-        (AnalyticsList? list, string message) = await listsService.CreateByPlayersAsync(
+        (AnalyticsList? list, string message) = await listsRepository.CreateByPlayersAsync(
                                                     Guid.NewGuid(),
                                                     requestBody.Name,
                                                     creator,
