@@ -100,6 +100,32 @@ public class AnalyticListsController(
         return Created("/api/lists/" + list.Id, list);
     }
 
+    [HttpPost("teams-lists")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
+    public async Task<ActionResult<AnalyticsList>> CreateByTeams(
+        [FromBody] CreateListRequestBodyModel requestBody,
+        CancellationToken                     cancellationToken)
+    {
+        User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
+        if (creator is null)
+        {
+            return Forbid(AuthExtensions.AuthenticationScheme);
+        }
+
+        (AnalyticsList? list, string message) = await listsRepository.CreateByTeamsAsync(
+                                                    Guid.NewGuid(),
+                                                    requestBody.Name,
+                                                    creator,
+                                                    requestBody.Ids,
+                                                    cancellationToken);
+        if (list is null)
+        {
+            return Conflict(message);
+        }
+
+        return Created("/api/lists/" + list.Id, list);
+    }
+
     private async Task<Guid> GetCurrentUserIdAsync(CancellationToken cancellationToken)
     {
         return (await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken))!.Id;
