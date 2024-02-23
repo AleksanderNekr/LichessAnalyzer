@@ -13,7 +13,7 @@ public class AnalyticListsController(
     AuthService           authService,
     AnalyticsListsService listsService) : Controller
 {
-    [HttpPost("lists")]
+    [HttpPost("players-lists")]
     [Authorize(AuthExtensions.LichessAuthPolicyName)]
     public async Task<ActionResult<AnalyticsList>> CreateByPlayers(
         [FromBody] CreateListRequestBodyModel requestBody,
@@ -29,7 +29,7 @@ public class AnalyticListsController(
                                                     Guid.NewGuid(),
                                                     requestBody.Name,
                                                     creator,
-                                                    requestBody.PlayersIds,
+                                                    requestBody.Ids,
                                                     cancellationToken);
         if (list is null)
         {
