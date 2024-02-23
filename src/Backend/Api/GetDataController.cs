@@ -1,6 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Backend.Auth;
 using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.LichessApi.ServiceResponsesModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Api;
@@ -10,6 +11,7 @@ namespace Backend.Api;
 public class GetDataController(DataService dataService) : Controller
 {
     [HttpGet("players")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
     public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetPlayersInfo(
         [FromQuery] IEnumerable<string>        ids,
         [FromQuery] IEnumerable<PlayerStat>?   withStats         = null,
@@ -28,6 +30,7 @@ public class GetDataController(DataService dataService) : Controller
 
 
     [HttpGet("teams")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
     public Task<ActionResult<IEnumerable<TeamResponse>>> GetTeamsInfo(
         [FromQuery] IEnumerable<string> ids,
         [FromQuery] bool                withParticipants = false,
