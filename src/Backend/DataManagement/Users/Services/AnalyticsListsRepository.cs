@@ -48,14 +48,14 @@ public class AnalyticsListsRepository(
         ICollection<string> playersIds,
         CancellationToken   cancellationToken = default)
     {
-        if (await ListsLimitReachedAsync())
+        if (await ListsLimitReachedAsync(creator, cancellationToken))
         {
             logger.LogDebug("Max lists limit reached for user: {Name}", creator.Name);
 
             return (null, $"Max lists limit: {creator.MaxListsCount} reached! Unable to create");
         }
 
-        if (await ListNameTakenAsync())
+        if (await ListNameTakenAsync(listName, cancellationToken))
         {
             logger.LogDebug("List with Name {ListName} exists for user {Id}:{Name}",
                             listName,
@@ -81,21 +81,64 @@ public class AnalyticsListsRepository(
         await context.SaveChangesAsync(cancellationToken);
 
         return (list, string.Empty);
+    }
 
-        async Task<bool> ListsLimitReachedAsync()
+    public async Task<(AnalyticsList?, string)> CreateByTeamsAsync(
+        Guid                listId,
+        string              listName,
+        User                creator,
+        ICollection<string> teamsIds,
+        CancellationToken   cancellationToken = default)
+    {
+        if (await ListsLimitReachedAsync(creator, cancellationToken))
         {
-            return creator.AnalyticsLists is null
-                && await CountCreatorsListsAsync() >= creator.MaxListsCount
-                || creator.AnalyticsLists?.Count >= creator.MaxListsCount;
+            logger.LogDebug("Max lists limit reached for user: {Name}", creator.Name);
+
+            return (null, $"Max lists limit: {creator.MaxListsCount} reached! Unable to create");
         }
 
-        async Task<bool> ListNameTakenAsync()
+        if (await ListNameTakenAsync(listName, cancellationToken))
         {
-            return await context.AnalyticsLists.SingleOrDefaultAsync(
-                           l => l.Name == listName,
-                           cancellationToken)
-                       is not null;
+            logger.LogDebug("List with Name {ListName} exists for user {Id}:{Name}",
+                            listName,
+                            creator.Id,
+                            creator.Name);
+
+            return (null, $"List with Name {listName} already exists in your collection");
         }
+
+        AnalyticsList list = new(listId, listName, creator.Id);
+        if (teamsIds.Count > 0)
+        {
+            IEnumerable<TeamResponse> cachedTeams = await cachedDataService.GetTeamsAsync(
+                                                        teamsIds.ToList(),
+                                                        withParticipants: true,
+                                                        cancellationToken: cancellationToken);
+            list.ListedPlayers = cachedTeams.SelectMany(team => team.Participants
+                                                                    .Select(playerId =>
+                                                                                new Player(playerId, listId)))
+                                            .ToList();
+        }
+
+        await context.AnalyticsLists.AddAsync(list, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return (list, string.Empty);
+    }
+
+    private async Task<bool> ListNameTakenAsync(string listName, CancellationToken cancellationToken)
+    {
+        return await context.AnalyticsLists.SingleOrDefaultAsync(
+                       l => l.Name == listName,
+                       cancellationToken)
+                   is not null;
+    }
+
+    private async Task<bool> ListsLimitReachedAsync(User creator, CancellationToken cancellationToken)
+    {
+        return creator.AnalyticsLists is null
+            && await CountCreatorsListsAsync() >= creator.MaxListsCount
+            || creator.AnalyticsLists?.Count >= creator.MaxListsCount;
 
         Task<int> CountCreatorsListsAsync()
         {

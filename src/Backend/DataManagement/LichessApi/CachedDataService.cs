@@ -28,6 +28,7 @@ public class CachedDataService(
         if (AllFetched())
         {
             logger.LogDebug("All players fetched from cache");
+
             return fetchedPlayers;
         }
 
@@ -64,9 +65,10 @@ public class CachedDataService(
     }
 
     public async Task<IEnumerable<TeamResponse>> GetTeamsAsync(
-        List<string> ids,
-        bool         withParticipants,
-        bool         withTournaments)
+        List<string>      ids,
+        bool              withParticipants  = false,
+        bool              withTournaments   = false,
+        CancellationToken cancellationToken = default)
     {
         List<TeamResponse> fetchedTeams =
             (await Task.WhenAll(ids.Select(cacheService.ExtractTeamAsync)))
