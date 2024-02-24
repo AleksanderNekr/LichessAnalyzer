@@ -257,7 +257,9 @@ public class AnalyticsListsRepository(
         list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
                                       .ToList();
 
-        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(player.Id))
+        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(
+                                                                    player.Id,
+                                                                    StringComparer.OrdinalIgnoreCase))
                                  .ToList();
         await context.SaveChangesAsync(cancellationToken);
 
