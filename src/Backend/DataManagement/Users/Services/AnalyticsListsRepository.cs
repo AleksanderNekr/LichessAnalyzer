@@ -27,8 +27,10 @@ public class AnalyticsListsRepository(
     {
         AnalyticsList? list = owner.AnalyticsLists?.AsQueryable()
                                    .Include(list => list.ListedPlayers)
+                                   .AsNoTrackingWithIdentityResolution()
                                    .SingleOrDefault(list => list.Id == id)
                            ?? await context.AnalyticsLists.Include(list => list.ListedPlayers)
+                                           .AsNoTrackingWithIdentityResolution()
                                            .SingleOrDefaultAsync(list => list.Id == id, cancellationToken);
 
         if (list is null || list.CreatorId != owner.Id)
@@ -42,7 +44,9 @@ public class AnalyticsListsRepository(
     public IQueryable<AnalyticsList> GetAll(User owner)
     {
         return owner.AnalyticsLists?.AsQueryable()
-            ?? context.AnalyticsLists.Where(list => list.CreatorId == owner.Id);
+                    .AsNoTrackingWithIdentityResolution()
+            ?? context.AnalyticsLists.Where(list => list.CreatorId == owner.Id)
+                      .AsNoTrackingWithIdentityResolution();
     }
 
     public IQueryable<AnalyticsList> GetAllWithPlayers(User owner)
@@ -50,9 +54,11 @@ public class AnalyticsListsRepository(
         return owner.AnalyticsLists?
                     .AsQueryable()
                     .Include(list => list.ListedPlayers)
+                    .AsNoTrackingWithIdentityResolution()
             ?? context.AnalyticsLists
                       .Include(list => list.ListedPlayers)
-                      .Where(list => list.CreatorId == owner.Id);
+                      .Where(list => list.CreatorId == owner.Id)
+                      .AsNoTrackingWithIdentityResolution();
     }
 
     public async Task<(AnalyticsList?, string)> CreateByPlayersAsync(
