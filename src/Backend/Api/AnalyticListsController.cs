@@ -39,7 +39,7 @@ public class AnalyticListsController(
             return NotFound($"Analytics list with ID: {id} not found");
         }
 
-        Guid userId = await GetCurrentUserIdAsync(cancellationToken);
+        Guid? userId = await GetCurrentUserIdAsync(cancellationToken);
 
         if (list.CreatorId == userId)
         {
@@ -126,8 +126,8 @@ public class AnalyticListsController(
         return Created("/api/lists/" + list.Id, list);
     }
 
-    private async Task<Guid> GetCurrentUserIdAsync(CancellationToken cancellationToken)
+    private async Task<Guid?> GetCurrentUserIdAsync(CancellationToken cancellationToken)
     {
-        return (await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken))!.Id;
+        return (await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken))?.Id;
     }
 }
