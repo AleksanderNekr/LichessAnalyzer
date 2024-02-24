@@ -181,7 +181,7 @@ public class AnalyticsListsRepository(
         bool EmptyOrWrongCreator() => list is null || list.CreatorId != owner.Id;
     }
 
-    public async Task<bool> DeleteListAsync(
+    public async Task<ListManipulationResult> DeleteListAsync(
         User              owner,
         Guid              listId,
         CancellationToken cancellationToken = default)
@@ -189,13 +189,13 @@ public class AnalyticsListsRepository(
         AnalyticsList? list = await context.AnalyticsLists.FindAsync([ listId ], cancellationToken);
         if (list is null || list.CreatorId != owner.Id)
         {
-            return false;
+            return ListManipulationResult.ListNotFound;
         }
 
         context.AnalyticsLists.Remove(list);
         await context.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return ListManipulationResult.Success;
     }
 
     public async Task<AnalyticsList> AddPlayersAsync(
