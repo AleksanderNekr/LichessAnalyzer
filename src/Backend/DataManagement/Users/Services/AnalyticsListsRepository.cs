@@ -244,25 +244,35 @@ public class AnalyticsListsRepository(
         int RemainCapacity() => creator.MaxPlayersInList - list.ListedPlayers!.Count;
     }
 
-    public async Task<AnalyticsList> DeletePlayersAsync(
-        AnalyticsList       list,
-        ICollection<string> playersIds,
-        CancellationToken   cancellationToken = default)
+    public async Task<(AnalyticsList?, ListManipulationResult)> DeletePlayersAsync(
+        User              owner,
+        Guid              listId,
+        List<string>      playersIds,
+        CancellationToken cancellationToken = default)
     {
-        if (playersIds.Count > 0)
+        AnalyticsList? list = await GetByIdWithPlayersAsync(owner, listId, cancellationToken);
+        if (list is null)
         {
-            return list;
+            return (null, ListManipulationResult.ListNotFound);
         }
 
-        list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
-                                      .ToList();
+        IEnumerable<Player> playersToDelete = list.ListedPlayers!.Where(
+                                                       player => playersIds.Contains(
+                                                           player.Id,
+                                                           StringComparer.OrdinalIgnoreCase))
+                                                  .ToList();
+        foreach (Player player in playersToDelete)
+        {
+            context.Players.Entry(player).State = EntityState.Deleted;
+        }
 
-        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(
-                                                                    player.Id,
-                                                                    StringComparer.OrdinalIgnoreCase))
-                                 .ToList();
+        logger.LogDebug("Deleted {Count} players from list {Name}",
+                        playersToDelete.Count(),
+                        list.Name);
+
+        context.AnalyticsLists.Entry(list).State = EntityState.Modified;
         await context.SaveChangesAsync(cancellationToken);
 
-        return list;
+        return (list, ListManipulationResult.Success);
     }
 }
