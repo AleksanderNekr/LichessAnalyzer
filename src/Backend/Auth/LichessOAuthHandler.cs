@@ -3,8 +3,6 @@ using System.Net.Mime;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using Backend.DataManagement.Users.Entities;
-using Backend.DataManagement.Users.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
