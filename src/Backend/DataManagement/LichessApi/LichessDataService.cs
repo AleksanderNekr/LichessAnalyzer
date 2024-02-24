@@ -1,99 +1,20 @@
-﻿using Backend.DataManagement.LichessApi.LichessResponsesModels;
+﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
+using Backend.DataManagement.LichessApi.LichessResponsesModels;
 using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 
 namespace Backend.DataManagement.LichessApi;
 
-public class DataService(HttpClient httpClient, ILogger<DataService> logger)
+public class LichessDataService(HttpClient httpClient, ILogger<LichessDataService> logger)
 {
-    public async Task<IEnumerable<PlayerResponse>> GetChessPlayersAsync(IEnumerable<string> ids,
-                                                                        List<PlayerStat>    stats,
-                                                                        List<PlayCategory>  categories,
-                                                                        CancellationToken   cancellationToken = default)
-    {
-        using HttpResponseMessage resp = await httpClient.PostAsync("users",
-                                                                    new StringContent(string.Join(',', ids)),
-                                                                    cancellationToken);
-
-        resp.EnsureSuccessStatusCode();
-        var usersResponse = await resp.Content.ReadFromJsonAsync<List<UsersByIdResponse>>(cancellationToken);
-        if (usersResponse is null)
-        {
-            return Enumerable.Empty<PlayerResponse>();
-        }
-
-        logger.LogDebug("Starting building players");
-        List<PlayerResponse> composedPlayers = new(usersResponse.Count);
-        composedPlayers = await BuildPlayersAsync(composedPlayers);
-
-        logger.LogDebug("Finished building players");
-
-        return composedPlayers;
-
-        async Task<List<PlayerResponse>> BuildPlayersAsync(List<PlayerResponse> players)
-        {
-            foreach (UsersByIdResponse userResponse in usersResponse)
-            {
-                var ratingsHistories     = (IReadOnlyList<RatingHistory>)Enumerable.Empty<RatingHistory>();
-                var gamesLists           = (IReadOnlyList<GamesList>)Enumerable.Empty<GamesList>();
-                var statistics           = (IReadOnlyList<Statistic>)Enumerable.Empty<Statistic>();
-                var tournamentStatistics = (IReadOnlyList<TournamentStatistic>)Enumerable.Empty<TournamentStatistic>();
-                var teams                = (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
-                foreach (PlayerStat stat in stats)
-                {
-                    switch (stat)
-                    {
-                        case PlayerStat.Ratings:
-                            logger.LogDebug("Starting getting ratings histories");
-                            ratingsHistories = await GetRatingsHistoriesAsync(userResponse.Id, categories, cancellationToken);
-
-                            break;
-                        case PlayerStat.GamesHistory:
-                            logger.LogDebug("Starting getting games history");
-                            gamesLists = GetGamesListsAsync();
-
-                            break;
-                        case PlayerStat.AllGameStats:
-                            logger.LogDebug("Starting getting all games stats");
-                            statistics = GetStatistics();
-
-                            break;
-                        case PlayerStat.TournamentsStats:
-                            logger.LogDebug("Starting getting tournaments stats");
-                            tournamentStatistics = GetTournamentStatistics();
-
-                            break;
-                        case PlayerStat.Teams:
-                            logger.LogDebug("Starting getting teams");
-                            teams = GetPlayerTeams();
-
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException(nameof(stats));
-                    }
-                }
-
-                PlayerResponse composedPlayer = new(
-                    userResponse.Username,
-                    userResponse.Id,
-                    ratingsHistories,
-                    gamesLists,
-                    statistics,
-                    tournamentStatistics,
-                    teams);
-
-                logger.LogDebug("Composed player: {@Player}", composedPlayer);
-                players.Add(composedPlayer);
-            }
-
-            logger.LogDebug("Finished building players");
-
-            return players;
-        }
-    }
+    private const int TeamsLimit                  = 10;
+    private const int PlayersLimit                = 500;
+    private const int DefaultTeamTournamentsLimit = 100;
 
     public async Task<IEnumerable<PlayerResponse>> GetChessPlayersAsync(IEnumerable<string> ids,
                                                                         CancellationToken   cancellationToken = default)
     {
+        ids = ids.Take(PlayersLimit);
         using HttpResponseMessage resp = await httpClient.PostAsync("users",
                                                                     new StringContent(string.Join(',', ids)),
                                                                     cancellationToken);
@@ -226,11 +147,113 @@ public class DataService(HttpClient httpClient, ILogger<DataService> logger)
         }
     }
 
-    public IReadOnlyList<TeamResponse> GetTeams(
-        IEnumerable<string> ids,
-        bool                withParticipants,
-        bool                withTournaments)
+    public async Task<IReadOnlyList<TeamResponse>> GetTeamsAsync(
+        ICollection<string> ids,
+        bool                withParticipants = true,
+        bool                withTournaments = true,
+        CancellationToken   cancellationToken = default)
     {
-        return (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
+        ids = (ICollection<string>)ids.Take(TeamsLimit);
+        HttpResponseMessage resp          = null!;
+        List<TeamResponse>  composedTeams = new(ids.Count);
+
+        foreach (string teamId in ids)
+        {
+            resp = await httpClient.GetAsync($"team/{teamId}",
+                                             cancellationToken);
+            if (!resp.IsSuccessStatusCode)
+            {
+                continue;
+            }
+
+            var teamResponse = await resp.Content.ReadFromJsonAsync<TeamByIdResponse>(cancellationToken);
+            if (teamResponse is null)
+            {
+                logger.LogWarning("Team with ID: {Id} not found", teamId);
+
+                continue;
+            }
+
+            (List<string>? participants, List<TeamTournamentResponse>? tournaments) = await FetchCollectionsAsync(teamId);
+
+            composedTeams.Add(new TeamResponse(
+                                  teamResponse.Id,
+                                  teamResponse.Name,
+                                  teamResponse.Leader.Name,
+                                  participants ?? [ ],
+                                  tournaments  ?? [ ]));
+        }
+
+        resp.Dispose();
+
+        return composedTeams;
+
+        async Task<(List<string>? participants, List<TeamTournamentResponse>? tournaments)> FetchCollectionsAsync(string teamId)
+        {
+            List<string>?                 participants = null;
+            List<TeamTournamentResponse>? tournaments  = null;
+
+            if (withParticipants)
+            {
+                participants = new List<string>(PlayersLimit);
+                await foreach (TeamParticipantResponse response in GetParticipantsAsync(teamId, cancellationToken))
+                {
+                    participants.Add(response.ParticipantName);
+                }
+            }
+
+            if (withTournaments)
+            {
+                tournaments = new List<TeamTournamentResponse>(DefaultTeamTournamentsLimit);
+                await foreach (TeamTournamentResponse response in GetTeamTournamentsAsync(teamId, cancellationToken))
+                {
+                    tournaments.Add(response);
+                }
+            }
+
+            return (participants, tournaments);
+        }
+    }
+
+    private async IAsyncEnumerable<TeamParticipantResponse> GetParticipantsAsync(
+        string teamId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Starting getting JSON-stream...");
+        Stream ndjsonStream = await httpClient.GetStreamAsync($"team/{teamId}/users",
+                                                              cancellationToken);
+        using StreamReader ndjsonReader = new(ndjsonStream);
+
+        string? json               = await ndjsonReader.ReadLineAsync(cancellationToken);
+        var     participantCounter = 1;
+        while (json is not null && participantCounter <= PlayersLimit)
+        {
+            logger.LogDebug("Read json line: {Json}", json);
+
+            yield return JsonSerializer.Deserialize<TeamParticipantResponse>(json)
+                      ?? new TeamParticipantResponse(string.Empty);
+
+            json = await ndjsonReader.ReadLineAsync(cancellationToken);
+            participantCounter++;
+        }
+    }
+
+    private async IAsyncEnumerable<TeamTournamentResponse> GetTeamTournamentsAsync(
+        string teamId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Starting getting JSON-stream...");
+        Stream ndjsonStream = await httpClient.GetStreamAsync($"team/{teamId}/swiss",
+                                                              cancellationToken);
+        using StreamReader ndjsonReader = new(ndjsonStream);
+
+        string? json = await ndjsonReader.ReadLineAsync(cancellationToken);
+        while (json is not null)
+        {
+            logger.LogDebug("Read json line: {Json}", json);
+
+            yield return JsonSerializer.Deserialize<TeamTournamentResponse>(json)
+                      ?? new TeamTournamentResponse(string.Empty, string.Empty, DateTime.MinValue);
+
+            json = await ndjsonReader.ReadLineAsync(cancellationToken);
+        }
     }
 }

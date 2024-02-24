@@ -4,7 +4,7 @@ using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 namespace Backend.DataManagement.LichessApi;
 
 public class CachedDataService(
-    DataService                dataService,
+    LichessDataService         lichessDataService,
     IAnalyticsCacheService     cacheService,
     ILogger<CachedDataService> logger)
 {
@@ -28,6 +28,7 @@ public class CachedDataService(
         if (AllFetched())
         {
             logger.LogDebug("All players fetched from cache");
+
             return fetchedPlayers;
         }
 
@@ -39,7 +40,7 @@ public class CachedDataService(
         {
             logger.LogDebug("Starting caching not fetched players...");
             IEnumerable<string> notFetchedIds = ids.Where(id => !fetchedPlayersIds.Contains(id));
-            IEnumerable<PlayerResponse> players = (await dataService.GetChessPlayersAsync(
+            IEnumerable<PlayerResponse> players = (await lichessDataService.GetChessPlayersAsync(
                                                        notFetchedIds,
                                                        cancellationToken)).ToList();
 
@@ -64,14 +65,16 @@ public class CachedDataService(
     }
 
     public async Task<IEnumerable<TeamResponse>> GetTeamsAsync(
-        List<string> ids,
-        bool         withParticipants,
-        bool         withTournaments)
+        List<string>      ids,
+        bool              withParticipants  = false,
+        bool              withTournaments   = false,
+        CancellationToken cancellationToken = default)
     {
         List<TeamResponse> fetchedTeams =
             (await Task.WhenAll(ids.Select(cacheService.ExtractTeamAsync)))
-           .Where(response => response is not null)
+           .Where(response => response?.Id is not null)
            .ToList()!;
+        ClearCollectionsIfNeeded(fetchedTeams);
 
         List<string> fetchedTeamsIds = fetchedTeams.Select(team => team.Id)
                                                    .ToList();
@@ -82,14 +85,17 @@ public class CachedDataService(
         }
 
         IEnumerable<TeamResponse> notFetchedTeams = await CacheNotFetched();
+        ClearCollectionsIfNeeded((ICollection<TeamResponse>)notFetchedTeams);
 
         return fetchedTeams.UnionBy(notFetchedTeams, team => team.Id, StringComparer.Ordinal);
 
         async Task<IEnumerable<TeamResponse>> CacheNotFetched()
         {
-            IEnumerable<string> notFetchedIds = ids.Where(id => !fetchedTeamsIds.Contains(id));
-            IEnumerable<TeamResponse> teams = dataService.GetTeams(notFetchedIds, withParticipants, withTournaments)
-                                                         .ToList();
+            ICollection<string> notFetchedIds = ids.Where(id => !fetchedTeamsIds.Contains(id))
+                                                   .ToList();
+            IEnumerable<TeamResponse> teams = await lichessDataService.GetTeamsAsync(
+                                                  notFetchedIds,
+                                                  cancellationToken: cancellationToken);
 
             IEnumerable<Task<bool>> cacheTasks = teams.Select(cacheService.CacheTeamAsync);
 
@@ -108,6 +114,25 @@ public class CachedDataService(
         bool AllFetched()
         {
             return fetchedTeamsIds.Count == ids.Count;
+        }
+
+        void ClearCollectionsIfNeeded(ICollection<TeamResponse> teamResponses)
+        {
+            if (!withParticipants)
+            {
+                foreach (TeamResponse team in teamResponses)
+                {
+                    team.Participants = [ ];
+                }
+            }
+
+            if (!withTournaments)
+            {
+                foreach (TeamResponse team in teamResponses)
+                {
+                    team.Tournaments = [ ];
+                }
+            }
         }
     }
 }

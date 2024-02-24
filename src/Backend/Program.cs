@@ -56,7 +56,7 @@ builder.Services
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHttpClient<DataService>(
+builder.Services.AddHttpClient<LichessDataService>(
             client =>
             {
                 client.BaseAddress = new Uri("https://lichess.org/api/");
@@ -74,7 +74,7 @@ builder.Services.AddHttpClient<DataService>(
 builder.Services.AddLichessAuthentication();
 
 builder.Services.AddTransient<UsersRepository>();
-builder.Services.AddTransient<AnalyticsListsService>();
+builder.Services.AddTransient<AnalyticsListsRepository>();
 builder.Services.AddTransient<AuthService>();
 builder.Services.AddTransient<CachedDataService>();
 

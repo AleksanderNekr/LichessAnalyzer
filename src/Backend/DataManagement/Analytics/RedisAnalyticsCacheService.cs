@@ -47,7 +47,7 @@ public class RedisAnalyticsCacheService : IAnalyticsCacheService
         if (value.HasValue)
         {
             var result = JsonSerializer.Deserialize<PlayerResponse>(value.ToString());
-            _logger.LogDebug("Deserialized Value: {@Value}", result);
+            _logger.LogDebug("Deserialized Player: {@Value}", result?.Nickname);
 
             return result;
         }
