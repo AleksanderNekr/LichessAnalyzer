@@ -206,11 +206,12 @@ public class AnalyticsListsRepository(
 
     public async Task<AnalyticsList> AddPlayersAsync(
         User              creator,
-        AnalyticsList     list,
         CancellationToken cancellationToken = default,
         params string[]   playersIds)
+        Guid              listId,
     {
-        if (EmptyOrWrongCreator())
+        AnalyticsList? list = await GetByIdWithPlayersAsync(creator, listId, cancellationToken);
+        if (list is null)
         {
             return list;
         }
@@ -233,9 +234,7 @@ public class AnalyticsListsRepository(
 
         return list;
 
-        bool EmptyOrWrongCreator() => playersIds.Length == 0 || creator.Id != list.CreatorId;
-
-        int RemainCapacity() => creator.MaxPlayersInList - list.ListedPlayers.Count();
+        int RemainCapacity() => creator.MaxPlayersInList - list.ListedPlayers!.Count;
     }
 
     public async Task<AnalyticsList> DeletePlayersAsync(
