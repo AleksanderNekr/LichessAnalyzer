@@ -12,17 +12,31 @@ public class AnalyticsListsRepository(
 {
     public async ValueTask<AnalyticsList?> GetByIdAsync(User owner, Guid id, CancellationToken cancellationToken)
     {
-        return owner.AnalyticsLists?.SingleOrDefault(list => list.Id == id)
-            ?? await context.AnalyticsLists.FindAsync([ id ], cancellationToken);
+        AnalyticsList? list = owner.AnalyticsLists?.SingleOrDefault(list => list.Id == id)
+                           ?? await context.AnalyticsLists.FindAsync([ id ], cancellationToken);
+
+        if (list is null || list.CreatorId != owner.Id)
+        {
+            return null;
+        }
+
+        return list;
     }
 
     public async ValueTask<AnalyticsList?> GetByIdWithPlayersAsync(User owner, Guid id, CancellationToken cancellationToken)
     {
-        return owner.AnalyticsLists?.AsQueryable()
-                    .Include(list => list.ListedPlayers)
-                    .SingleOrDefault(list => list.Id == id)
-            ?? await context.AnalyticsLists.Include(list => list.ListedPlayers)
-                            .SingleOrDefaultAsync(list => list.Id == id, cancellationToken);
+        AnalyticsList? list = owner.AnalyticsLists?.AsQueryable()
+                                   .Include(list => list.ListedPlayers)
+                                   .SingleOrDefault(list => list.Id == id)
+                           ?? await context.AnalyticsLists.Include(list => list.ListedPlayers)
+                                           .SingleOrDefaultAsync(list => list.Id == id, cancellationToken);
+
+        if (list is null || list.CreatorId != owner.Id)
+        {
+            return null;
+        }
+
+        return list;
     }
 
     public IQueryable<AnalyticsList> GetAll(User owner)
