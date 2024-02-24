@@ -39,7 +39,7 @@ public class AnalyticListsController(
             return NotFound($"Analytics list with ID: {id} not found");
         }
 
-        Guid userId = await GetCurrentUserIdAsync(cancellationToken);
+        Guid? userId = await GetCurrentUserIdAsync(cancellationToken);
 
         if (list.CreatorId == userId)
         {
@@ -126,8 +126,32 @@ public class AnalyticListsController(
         return Created("/api/lists/" + list.Id, list);
     }
 
-    private async Task<Guid> GetCurrentUserIdAsync(CancellationToken cancellationToken)
+    [HttpPut("lists/{id:guid}/{newName}")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
+    public async Task<ActionResult<AnalyticsList>> UpdateListName(
+        [FromRoute] Guid   id,
+        [FromRoute] string newName,
+        CancellationToken  cancellationToken)
     {
-        return (await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken))!.Id;
+
+        User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
+        if (creator is null)
+        {
+            return Forbid(AuthExtensions.AuthenticationScheme);
+        }
+
+        (AnalyticsList? newList, ListManipulationResult updateResult) =
+            await listsRepository.UpdateListNameAsync(creator, id, newName, cancellationToken);
+        if (updateResult == ListManipulationResult.ListNotFound)
+        {
+            return NotFound($"List with id {id} not found for user {creator.Name}");
+        }
+
+        return Ok(newList!);
+    }
+
+    private async Task<Guid?> GetCurrentUserIdAsync(CancellationToken cancellationToken)
+    {
+        return (await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken))?.Id;
     }
 }
