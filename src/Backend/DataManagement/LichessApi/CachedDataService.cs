@@ -4,7 +4,7 @@ using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 namespace Backend.DataManagement.LichessApi;
 
 public class CachedDataService(
-    DataService                dataService,
+    LichessDataService         lichessDataService,
     IAnalyticsCacheService     cacheService,
     ILogger<CachedDataService> logger)
 {
@@ -40,7 +40,7 @@ public class CachedDataService(
         {
             logger.LogDebug("Starting caching not fetched players...");
             IEnumerable<string> notFetchedIds = ids.Where(id => !fetchedPlayersIds.Contains(id));
-            IEnumerable<PlayerResponse> players = (await dataService.GetChessPlayersAsync(
+            IEnumerable<PlayerResponse> players = (await lichessDataService.GetChessPlayersAsync(
                                                        notFetchedIds,
                                                        cancellationToken)).ToList();
 
