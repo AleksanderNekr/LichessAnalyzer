@@ -27,8 +27,10 @@ public class AnalyticsListsRepository(
     {
         AnalyticsList? list = owner.AnalyticsLists?.AsQueryable()
                                    .Include(list => list.ListedPlayers)
+                                   .AsNoTrackingWithIdentityResolution()
                                    .SingleOrDefault(list => list.Id == id)
                            ?? await context.AnalyticsLists.Include(list => list.ListedPlayers)
+                                           .AsNoTrackingWithIdentityResolution()
                                            .SingleOrDefaultAsync(list => list.Id == id, cancellationToken);
 
         if (list is null || list.CreatorId != owner.Id)
@@ -42,7 +44,9 @@ public class AnalyticsListsRepository(
     public IQueryable<AnalyticsList> GetAll(User owner)
     {
         return owner.AnalyticsLists?.AsQueryable()
-            ?? context.AnalyticsLists.Where(list => list.CreatorId == owner.Id);
+                    .AsNoTrackingWithIdentityResolution()
+            ?? context.AnalyticsLists.Where(list => list.CreatorId == owner.Id)
+                      .AsNoTrackingWithIdentityResolution();
     }
 
     public IQueryable<AnalyticsList> GetAllWithPlayers(User owner)
@@ -50,9 +54,11 @@ public class AnalyticsListsRepository(
         return owner.AnalyticsLists?
                     .AsQueryable()
                     .Include(list => list.ListedPlayers)
+                    .AsNoTrackingWithIdentityResolution()
             ?? context.AnalyticsLists
                       .Include(list => list.ListedPlayers)
-                      .Where(list => list.CreatorId == owner.Id);
+                      .Where(list => list.CreatorId == owner.Id)
+                      .AsNoTrackingWithIdentityResolution();
     }
 
     public async Task<(AnalyticsList?, string)> CreateByPlayersAsync(
@@ -181,7 +187,7 @@ public class AnalyticsListsRepository(
         bool EmptyOrWrongCreator() => list is null || list.CreatorId != owner.Id;
     }
 
-    public async Task<bool> DeleteListAsync(
+    public async Task<ListManipulationResult> DeleteListAsync(
         User              owner,
         Guid              listId,
         CancellationToken cancellationToken = default)
@@ -189,47 +195,53 @@ public class AnalyticsListsRepository(
         AnalyticsList? list = await context.AnalyticsLists.FindAsync([ listId ], cancellationToken);
         if (list is null || list.CreatorId != owner.Id)
         {
-            return false;
+            return ListManipulationResult.ListNotFound;
         }
 
         context.AnalyticsLists.Remove(list);
         await context.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return ListManipulationResult.Success;
     }
 
-    public async Task<AnalyticsList> AddPlayersAsync(
+    public async Task<(AnalyticsList?, ListManipulationResult)> AddPlayersAsync(
         User              creator,
-        AnalyticsList     list,
-        CancellationToken cancellationToken = default,
-        params string[]   playersIds)
+        Guid              listId,
+        List<string>      playersIds,
+        CancellationToken cancellationToken = default)
     {
-        if (EmptyOrWrongCreator())
+        AnalyticsList? list = await GetByIdWithPlayersAsync(creator, listId, cancellationToken);
+        if (list is null)
         {
-            return list;
+            return (null, ListManipulationResult.ListNotFound);
         }
 
+        playersIds = playersIds.Where(id => list.ListedPlayers!.All(
+                                          p => !p.Id.Equals(id,
+                                                            StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+        if (playersIds.Count == 0)
+        {
+            return (list, ListManipulationResult.Success);
+        }
 
-        IEnumerable<PlayerResponse> cachedPlayers = await cachedDataService.GetChessPlayersAsync(
-                                                        playersIds.ToList(),
-                                                        [ ],
-                                                        [ ],
-                                                        cancellationToken);
+        IEnumerable<PlayerResponse> playersToAdd = await cachedDataService.GetChessPlayersAsync(
+                                                       playersIds,
+                                                       [ ],
+                                                       [ ],
+                                                       cancellationToken);
 
-        list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
-                                      .ToList();
+        await context.Players.AddRangeAsync(playersToAdd
+                                           .Take(RemainCapacity())
+                                           .Select(p => new Player(p.Id, list.Id)),
+                                            cancellationToken);
 
-        list.ListedPlayers = list.ListedPlayers.Concat(cachedPlayers
-                                                      .Take(RemainCapacity())
-                                                      .Select(player => new Player(player.Id, list.Id)))
-                                 .ToList();
+        context.AnalyticsLists.Entry(list).State = EntityState.Modified;
         await context.SaveChangesAsync(cancellationToken);
 
-        return list;
+        return (list, ListManipulationResult.Success);
 
-        bool EmptyOrWrongCreator() => playersIds.Length == 0 || creator.Id != list.CreatorId;
-
-        int RemainCapacity() => creator.MaxPlayersInList - list.ListedPlayers.Count();
+        int RemainCapacity() => creator.MaxPlayersInList - list.ListedPlayers!.Count;
     }
 
     public async Task<AnalyticsList> DeletePlayersAsync(
@@ -245,7 +257,9 @@ public class AnalyticsListsRepository(
         list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
                                       .ToList();
 
-        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(player.Id))
+        list.ListedPlayers = list.ListedPlayers.Where(player => !playersIds.Contains(
+                                                                    player.Id,
+                                                                    StringComparer.OrdinalIgnoreCase))
                                  .ToList();
         await context.SaveChangesAsync(cancellationToken);
 
