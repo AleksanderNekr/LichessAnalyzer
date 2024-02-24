@@ -1,10 +1,16 @@
-﻿using Backend.DataManagement.LichessApi.LichessResponsesModels;
+﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
+using Backend.DataManagement.LichessApi.LichessResponsesModels;
 using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 
 namespace Backend.DataManagement.LichessApi;
 
 public class LichessDataService(HttpClient httpClient, ILogger<LichessDataService> logger)
 {
+    private const int TeamsLimit                  = 10;
+    private const int PlayersLimit                = 500;
+    private const int DefaultTeamTournamentsLimit = 100;
+
     public async Task<IEnumerable<PlayerResponse>> GetChessPlayersAsync(IEnumerable<string> ids,
                                                                         List<PlayerStat>    stats,
                                                                         List<PlayCategory>  categories,
@@ -94,6 +100,7 @@ public class LichessDataService(HttpClient httpClient, ILogger<LichessDataServic
     public async Task<IEnumerable<PlayerResponse>> GetChessPlayersAsync(IEnumerable<string> ids,
                                                                         CancellationToken   cancellationToken = default)
     {
+        ids = ids.Take(PlayersLimit);
         using HttpResponseMessage resp = await httpClient.PostAsync("users",
                                                                     new StringContent(string.Join(',', ids)),
                                                                     cancellationToken);
@@ -226,11 +233,113 @@ public class LichessDataService(HttpClient httpClient, ILogger<LichessDataServic
         }
     }
 
-    public IReadOnlyList<TeamResponse> GetTeams(
-        IEnumerable<string> ids,
-        bool                withParticipants,
-        bool                withTournaments)
+    public async Task<IReadOnlyList<TeamResponse>> GetTeamsAsync(
+        ICollection<string> ids,
+        bool                withParticipants = true,
+        bool                withTournaments = true,
+        CancellationToken   cancellationToken = default)
     {
-        return (IReadOnlyList<TeamResponse>)Enumerable.Empty<TeamResponse>();
+        ids = (ICollection<string>)ids.Take(TeamsLimit);
+        HttpResponseMessage resp          = null!;
+        List<TeamResponse>  composedTeams = new(ids.Count);
+
+        foreach (string teamId in ids)
+        {
+            resp = await httpClient.GetAsync($"team/{teamId}",
+                                             cancellationToken);
+            if (!resp.IsSuccessStatusCode)
+            {
+                continue;
+            }
+
+            var teamResponse = await resp.Content.ReadFromJsonAsync<TeamByIdResponse>(cancellationToken);
+            if (teamResponse is null)
+            {
+                logger.LogWarning("Team with ID: {Id} not found", teamId);
+
+                continue;
+            }
+
+            (List<string>? participants, List<TeamTournamentResponse>? tournaments) = await FetchCollectionsAsync(teamId);
+
+            composedTeams.Add(new TeamResponse(
+                                  teamResponse.Id,
+                                  teamResponse.Name,
+                                  teamResponse.Leader.Name,
+                                  participants ?? [ ],
+                                  tournaments  ?? [ ]));
+        }
+
+        resp.Dispose();
+
+        return composedTeams;
+
+        async Task<(List<string>? participants, List<TeamTournamentResponse>? tournaments)> FetchCollectionsAsync(string teamId)
+        {
+            List<string>?                 participants = null;
+            List<TeamTournamentResponse>? tournaments  = null;
+
+            if (withParticipants)
+            {
+                participants = new List<string>(PlayersLimit);
+                await foreach (TeamParticipantResponse response in GetParticipantsAsync(teamId, cancellationToken))
+                {
+                    participants.Add(response.ParticipantName);
+                }
+            }
+
+            if (withTournaments)
+            {
+                tournaments = new List<TeamTournamentResponse>(DefaultTeamTournamentsLimit);
+                await foreach (TeamTournamentResponse response in GetTeamTournamentsAsync(teamId, cancellationToken))
+                {
+                    tournaments.Add(response);
+                }
+            }
+
+            return (participants, tournaments);
+        }
+    }
+
+    private async IAsyncEnumerable<TeamParticipantResponse> GetParticipantsAsync(
+        string teamId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Starting getting JSON-stream...");
+        Stream ndjsonStream = await httpClient.GetStreamAsync($"team/{teamId}/users",
+                                                              cancellationToken);
+        using StreamReader ndjsonReader = new(ndjsonStream);
+
+        string? json               = await ndjsonReader.ReadLineAsync(cancellationToken);
+        var     participantCounter = 1;
+        while (json is not null && participantCounter <= PlayersLimit)
+        {
+            logger.LogDebug("Read json line: {Json}", json);
+
+            yield return JsonSerializer.Deserialize<TeamParticipantResponse>(json)
+                      ?? new TeamParticipantResponse(string.Empty);
+
+            json = await ndjsonReader.ReadLineAsync(cancellationToken);
+            participantCounter++;
+        }
+    }
+
+    private async IAsyncEnumerable<TeamTournamentResponse> GetTeamTournamentsAsync(
+        string teamId, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Starting getting JSON-stream...");
+        Stream ndjsonStream = await httpClient.GetStreamAsync($"team/{teamId}/swiss",
+                                                              cancellationToken);
+        using StreamReader ndjsonReader = new(ndjsonStream);
+
+        string? json = await ndjsonReader.ReadLineAsync(cancellationToken);
+        while (json is not null)
+        {
+            logger.LogDebug("Read json line: {Json}", json);
+
+            yield return JsonSerializer.Deserialize<TeamTournamentResponse>(json)
+                      ?? new TeamTournamentResponse(string.Empty, string.Empty, DateTime.MinValue);
+
+            json = await ndjsonReader.ReadLineAsync(cancellationToken);
+        }
     }
 }

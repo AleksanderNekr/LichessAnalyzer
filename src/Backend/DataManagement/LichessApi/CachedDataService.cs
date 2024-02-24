@@ -89,9 +89,11 @@ public class CachedDataService(
 
         async Task<IEnumerable<TeamResponse>> CacheNotFetched()
         {
-            IEnumerable<string> notFetchedIds = ids.Where(id => !fetchedTeamsIds.Contains(id));
-            IEnumerable<TeamResponse> teams = dataService.GetTeams(notFetchedIds, withParticipants, withTournaments)
-                                                         .ToList();
+            ICollection<string> notFetchedIds = ids.Where(id => !fetchedTeamsIds.Contains(id))
+                                                   .ToList();
+            IEnumerable<TeamResponse> teams = await lichessDataService.GetTeamsAsync(
+                                                  notFetchedIds,
+                                                  cancellationToken: cancellationToken);
 
             IEnumerable<Task<bool>> cacheTasks = teams.Select(cacheService.CacheTeamAsync);
 
