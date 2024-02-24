@@ -133,7 +133,6 @@ public class AnalyticListsController(
         [FromRoute] string newName,
         CancellationToken  cancellationToken)
     {
-
         User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
         if (creator is null)
         {
@@ -148,6 +147,29 @@ public class AnalyticListsController(
         }
 
         return Ok(newList!);
+    }
+
+    [HttpDelete("lists/{id:guid}")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
+    public async Task<IActionResult> DeleteList(
+        [FromRoute] Guid  id,
+        CancellationToken cancellationToken)
+    {
+        User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
+        if (creator is null)
+        {
+            return Forbid(AuthExtensions.AuthenticationScheme);
+        }
+
+        ListManipulationResult result = await listsRepository.DeleteListAsync(creator,
+                                                                              id,
+                                                                              cancellationToken);
+        if (result == ListManipulationResult.ListNotFound)
+        {
+            return NotFound($"List with id {id} not found for user {creator.Name}");
+        }
+
+        return NoContent();
     }
 
     private async Task<Guid?> GetCurrentUserIdAsync(CancellationToken cancellationToken)
