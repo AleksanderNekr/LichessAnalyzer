@@ -72,8 +72,9 @@ public class CachedDataService(
     {
         List<TeamResponse> fetchedTeams =
             (await Task.WhenAll(ids.Select(cacheService.ExtractTeamAsync)))
-           .Where(response => response is not null)
+           .Where(response => response?.Id is not null)
            .ToList()!;
+        ClearCollectionsIfNeeded(fetchedTeams);
 
         List<string> fetchedTeamsIds = fetchedTeams.Select(team => team.Id)
                                                    .ToList();
@@ -84,6 +85,7 @@ public class CachedDataService(
         }
 
         IEnumerable<TeamResponse> notFetchedTeams = await CacheNotFetched();
+        ClearCollectionsIfNeeded((ICollection<TeamResponse>)notFetchedTeams);
 
         return fetchedTeams.UnionBy(notFetchedTeams, team => team.Id, StringComparer.Ordinal);
 
@@ -112,6 +114,25 @@ public class CachedDataService(
         bool AllFetched()
         {
             return fetchedTeamsIds.Count == ids.Count;
+        }
+
+        void ClearCollectionsIfNeeded(ICollection<TeamResponse> teamResponses)
+        {
+            if (!withParticipants)
+            {
+                foreach (TeamResponse team in teamResponses)
+                {
+                    team.Participants = [ ];
+                }
+            }
+
+            if (!withTournaments)
+            {
+                foreach (TeamResponse team in teamResponses)
+                {
+                    team.Tournaments = [ ];
+                }
+            }
         }
     }
 }
