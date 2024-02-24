@@ -216,15 +216,14 @@ public class AnalyticsListsRepository(
             return (null, ListManipulationResult.ListNotFound);
         }
 
-
-        IEnumerable<PlayerResponse> cachedPlayers = await cachedDataService.GetChessPlayersAsync(
-                                                        playersIds.ToList(),
-                                                        [ ],
-                                                        [ ],
-                                                        cancellationToken);
-
-        list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
-                                      .ToList();
+        playersIds = playersIds.Where(id => list.ListedPlayers!.All(
+                                          p => !p.Id.Equals(id,
+                                                            StringComparison.OrdinalIgnoreCase)))
+                               .ToList();
+        if (playersIds.Count == 0)
+        {
+            return (list, ListManipulationResult.Success);
+        }
 
         IEnumerable<PlayerResponse> playersToAdd = await cachedDataService.GetChessPlayersAsync(
                                                        playersIds,
