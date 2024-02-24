@@ -198,6 +198,32 @@ public class AnalyticListsController(
         return Ok(newList!);
     }
 
+    [HttpDelete("lists/{id:guid}/players")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
+    public async Task<ActionResult<AnalyticsList>> DeletePlayers(
+        [FromRoute] Guid         id,
+        [FromBody]  List<string> playersIds,
+        CancellationToken        cancellationToken)
+    {
+        User? creator = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
+        if (creator is null)
+        {
+            return Forbid(AuthExtensions.AuthenticationScheme);
+        }
+
+        (AnalyticsList? newList, ListManipulationResult result) =
+            await listsRepository.DeletePlayersAsync(creator,
+                                                     id,
+                                                     playersIds,
+                                                     cancellationToken);
+        if (result == ListManipulationResult.ListNotFound)
+        {
+            return NotFound($"List with id {id} not found for user {creator.Name}");
+        }
+
+        return Ok(newList!);
+    }
+
     private async Task<Guid?> GetCurrentUserIdAsync(CancellationToken cancellationToken)
     {
         return (await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken))?.Id;
