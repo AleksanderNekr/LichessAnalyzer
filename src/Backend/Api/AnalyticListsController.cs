@@ -1,5 +1,7 @@
 ﻿using Backend.Api.RequestModels;
 using Backend.Auth;
+using Backend.DataManagement.LichessApi;
+using Backend.DataManagement.LichessApi.ServiceResponsesModels;
 using Backend.DataManagement.Users.Entities;
 using Backend.DataManagement.Users.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +16,10 @@ public class AnalyticListsController(
     AnalyticsListsRepository         listsRepository,
     ILogger<AnalyticListsController> logger) : Controller
 {
+    private readonly Lazy<List<PlayerStat>> _allStats = new(Enum.GetValues<PlayerStat>().ToList());
+
+    private readonly Lazy<List<PlayCategory>> _allCategories = new(Enum.GetValues<PlayCategory>().ToList());
+
     [HttpGet("lists/{id:guid}")]
     [Authorize(AuthExtensions.LichessAuthPolicyName)]
     public async Task<ActionResult<AnalyticsList>> GetById(
@@ -222,6 +228,44 @@ public class AnalyticListsController(
         }
 
         return Ok(newList!);
+    }
+
+    [HttpGet("lists/{id:guid}/data/{type}")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
+    public async Task<IActionResult> ExportPlayersInList(
+        [FromRoute]    Guid              id,
+        [FromRoute]    ExportFileType    type,
+        [FromServices] CachedDataService cachedDataService,
+        CancellationToken                cancellationToken)
+    {
+        User? owner = await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken);
+        if (owner is null)
+        {
+            logger.LogWarning("Current user is null");
+
+            return Forbid(AuthExtensions.AuthenticationScheme);
+        }
+
+        AnalyticsList? list = await listsRepository.GetByIdWithPlayersAsync(owner, id, cancellationToken);
+        if (list is null)
+        {
+            logger.LogWarning("Tried to get analytics list with ID: {Id}, but not found", id);
+
+            return NotFound($"Analytics list with ID: {id} not found");
+        }
+
+        IEnumerable<PlayerResponse> playersToExport = await cachedDataService.GetChessPlayersAsync(
+                                                          list.ListedPlayers!.Select(player => player.Id).ToList(),
+                                                          _allStats.Value,
+                                                          _allCategories.Value,
+                                                          cancellationToken);
+
+        return type switch
+        {
+            ExportFileType.Excel => ExportMethods.ToExcel(playersToExport),
+            ExportFileType.Csv   => ExportMethods.ToCsv(playersToExport),
+            _                    => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
     }
 
     private async Task<Guid?> GetCurrentUserIdAsync(CancellationToken cancellationToken)
