@@ -226,10 +226,18 @@ public class AnalyticsListsRepository(
         list.ListedPlayers ??= context.Players.Where(player => player.ContainingListId == list.Id)
                                       .ToList();
 
-        list.ListedPlayers = list.ListedPlayers.Concat(cachedPlayers
-                                                      .Take(RemainCapacity())
-                                                      .Select(player => new Player(player.Id, list.Id)))
-                                 .ToList();
+        IEnumerable<PlayerResponse> playersToAdd = await cachedDataService.GetChessPlayersAsync(
+                                                       playersIds,
+                                                       [ ],
+                                                       [ ],
+                                                       cancellationToken);
+
+        await context.Players.AddRangeAsync(playersToAdd
+                                           .Take(RemainCapacity())
+                                           .Select(p => new Player(p.Id, list.Id)),
+                                            cancellationToken);
+
+        context.AnalyticsLists.Entry(list).State = EntityState.Modified;
         await context.SaveChangesAsync(cancellationToken);
 
         return (list, ListManipulationResult.Success);
