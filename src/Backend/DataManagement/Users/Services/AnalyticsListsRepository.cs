@@ -204,16 +204,16 @@ public class AnalyticsListsRepository(
         return ListManipulationResult.Success;
     }
 
-    public async Task<AnalyticsList> AddPlayersAsync(
+    public async Task<(AnalyticsList?, ListManipulationResult)> AddPlayersAsync(
         User              creator,
-        CancellationToken cancellationToken = default,
-        params string[]   playersIds)
         Guid              listId,
+        List<string>      playersIds,
+        CancellationToken cancellationToken = default)
     {
         AnalyticsList? list = await GetByIdWithPlayersAsync(creator, listId, cancellationToken);
         if (list is null)
         {
-            return list;
+            return (null, ListManipulationResult.ListNotFound);
         }
 
 
@@ -232,7 +232,7 @@ public class AnalyticsListsRepository(
                                  .ToList();
         await context.SaveChangesAsync(cancellationToken);
 
-        return list;
+        return (list, ListManipulationResult.Success);
 
         int RemainCapacity() => creator.MaxPlayersInList - list.ListedPlayers!.Count;
     }
