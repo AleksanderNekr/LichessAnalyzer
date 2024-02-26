@@ -1,5 +1,9 @@
 ﻿@startuml auth-code-flow
 
+skinparam {
+    style strictuml
+}
+
 autonumber
 autoactivate on
 
@@ -51,6 +55,10 @@ end
 
 @startuml pkce-code-flow
 
+skinparam {
+    style strictuml
+}
+
 autonumber
 autoactivate on
 
@@ -67,7 +75,7 @@ auth_server -> auth_server: Аутентификация
 auth_server -> auth_server: Валидация\nразрешения
 
 alt Валидация пройдена
-    auth_server --> auth_server: Сохранение\nтрансформированного верификатора\nи метода трансформации
+    auth_server ->> auth_server: Сохранение\nтрансформированного верификатора\nи метода трансформации
     
     auth_server --> client: Код авторизации
     client -> auth_server: Код авторизации, Верификатор

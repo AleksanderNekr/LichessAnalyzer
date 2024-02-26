@@ -1,6 +1,10 @@
 ﻿@startuml Basic Request-Response Sequence
 'https://plantuml.com/sequence-diagram
 
+skinparam {
+    style strictuml
+}
+
 autonumber
 
 ' actors: Пользователь, Клиентское приложение, Бэкенд-приложение, Lichess API
@@ -24,7 +28,9 @@ deactivate lichess
 
 alt ответ успешен
     backend -> backend: обработка и\nподготовка данных
+    activate backend
     backend --> client: возврат HTTP ответа\nс данными
+    deactivate backend
     
     client --> user: отображение\nданных
 else ответ не успешен
@@ -40,6 +46,10 @@ end
 @enduml
 
 @startuml Request-Response with Cache, retries and 429 check Sequence
+
+skinparam {
+    style strictuml
+}
 
 autonumber
 
@@ -72,8 +82,10 @@ opt поиск по кэшу не дал результатов
         client --> user: сообщение о недоступности\nсервиса Lichess и таймером ожидания
     
         backend -> backend: ожидание перед\nповторной попыткой
+        activate backend
         
         backend -> lichess: отправка HTTP запроса
+        deactivate backend
         activate lichess
     
         lichess --> backend: возврат HTTP ответа
@@ -81,9 +93,14 @@ opt поиск по кэшу не дал результатов
     end
     opt получены данные
         backend -> backend: обработка данных
+        activate backend
     
-        backend --> cache: обновление
+        backend ->> cache: Данные
+        deactivate backend
         activate cache
+        cache -> cache: Обновление данных
+        activate cache
+        deactivate cache
         deactivate cache
     end
     
