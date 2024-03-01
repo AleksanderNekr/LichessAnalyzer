@@ -129,6 +129,8 @@ app.UseCors("front");
 
 await ApplyMigrationsAsync(app.Services);
 
+app.UseSpa(spaBuilder => spaBuilder.UseProxyToSpaDevelopmentServer("http://localhost:4200"));
+
 Log.Information("I'm alive!");
 
 app.Run();
