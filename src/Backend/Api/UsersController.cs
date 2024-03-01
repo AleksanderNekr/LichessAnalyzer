@@ -1,4 +1,5 @@
 ﻿using Backend.Auth;
+using Backend.DataManagement.Users.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,5 +41,12 @@ public class UsersController(AuthService authService) : Controller
                                              statusCode: StatusCodes.Status409Conflict),
             _ => new StatusCodeResult(StatusCodes.Status500InternalServerError)
         };
+    }
+
+    [HttpGet("/user-info")]
+    [Authorize(AuthExtensions.LichessAuthPolicyName)]
+    public async Task<ActionResult<User>> GetUserInfo(CancellationToken cancellationToken)
+    {
+        return Ok(await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken));
     }
 }
