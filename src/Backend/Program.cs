@@ -86,17 +86,6 @@ builder.Services.AddHealthChecks()
        .AddNpgSql(connectionString)
        .AddRedis(redisCacheSection.GetValue<string>("RedisConnectionsString")!);
 
-builder.Services.AddCors(
-    options => options.AddPolicy(
-        "front",
-        policyBuilder =>
-        {
-            policyBuilder.WithOrigins("http://localhost:4200", "https://localhost:4200")
-                         .AllowCredentials()
-                         .AllowAnyHeader()
-                         .AllowAnyMethod();
-        }));
-
 WebApplication app = builder.Build();
 
 app.UseSwagger();
@@ -125,9 +114,9 @@ app.MapHealthChecks("/_health",
 
 app.UseHttpLogging();
 
-app.UseCors("front");
-
 await ApplyMigrationsAsync(app.Services);
+
+app.UseEndpoints(_ => {});
 
 app.UseSpa(spaBuilder => spaBuilder.UseProxyToSpaDevelopmentServer("http://localhost:4200"));
 
