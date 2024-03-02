@@ -1,0 +1,5 @@
+﻿<h1>Hello!</h1>
+<p>Congratulations! Your app is running. 🎉</p>
+
+<button class="btn btn-outline-primary" (click)="checkStatus()">Check Status</button>
+<p [textContent]="healthStatus | async"></p>
