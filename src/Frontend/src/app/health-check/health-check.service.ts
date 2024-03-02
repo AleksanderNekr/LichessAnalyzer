@@ -14,7 +14,7 @@ export class HealthCheckService {
   }
 
   checkHealth(): void {
-    this.http.get(environment.backApiBase + '_health')
+    this.http.get('_health')
       .pipe(
         map(() => this.status.next('good')),
         catchError((error: HttpErrorResponse) => {
