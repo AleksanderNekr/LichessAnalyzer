@@ -1,4 +1,6 @@
-﻿using Backend.Auth;
+﻿using System.Security.Claims;
+using Backend.Api.ResponseModels;
+using Backend.Auth;
 using Backend.DataManagement.Users.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -45,8 +47,25 @@ public class UsersController(AuthService authService) : Controller
 
     [HttpGet("/user-info")]
     [Authorize(AuthExtensions.LichessAuthPolicyName)]
-    public async Task<ActionResult<User>> GetUserInfo(CancellationToken cancellationToken)
+    public async Task<ActionResult<UserInfoResponse>> GetUserInfo(CancellationToken cancellationToken)
     {
-        return Ok(await authService.GetCurrentUserAsync(HttpContext.User, cancellationToken));
+        ClaimsPrincipal httpUser = HttpContext.User;
+        User?           dbUser   = await authService.GetCurrentUserAsync(httpUser, cancellationToken);
+        if (dbUser is null)
+        {
+            return Forbid(AuthExtensions.LichessAuthPolicyName);
+        }
+
+        UserInfoResponse userResponse = new(
+            dbUser.Id,
+            httpUser.FindFirstValue(ClaimTypes.Name)!,
+            httpUser.FindFirstValue(ClaimTypes.Email)!,
+            httpUser.FindFirstValue(ClaimTypes.GivenName)!,
+            httpUser.FindFirstValue(ClaimTypes.Surname)!,
+            dbUser.MaxPlayersInList,
+            dbUser.MaxListsCount
+        );
+
+        return Ok(userResponse);
     }
 }
