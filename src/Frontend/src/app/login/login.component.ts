@@ -10,6 +10,6 @@ import { AuthService } from "../auth/auth.service";
   providers: [ AuthService ]
 })
 export class LoginComponent {
-  constructor(private readonly authService: AuthService) {
+  constructor() {
   }
 }

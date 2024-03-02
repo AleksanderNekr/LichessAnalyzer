@@ -20,10 +20,6 @@ import { NgClass } from "@angular/common";
 export class NavMenuComponent {
   protected isExpanded: boolean = false
 
-  public collapse() {
-    this.isExpanded = false
-  }
-
   public toggle() {
     this.isExpanded = !this.isExpanded
   }
