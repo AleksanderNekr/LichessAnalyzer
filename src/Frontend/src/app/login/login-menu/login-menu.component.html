@@ -1,0 +1,15 @@
+﻿<ul class="navbar-nav">
+  @if (isAuthenticated) {
+    <li class="nav-item">
+      <a [routerLink]='["/account/profile"]' class="nav-link text-dark"
+         title="Manage">Hello {{ userName }}</a>
+    </li>
+    <li class="nav-item">
+      <a (click)="logout()" class="nav-link text-dark" title="Logout">Logout</a>
+    </li>
+  } @else {
+    <li class="nav-item">
+      <a [routerLink]='["/account/login"]' class="nav-link text-dark">Login</a>
+    </li>
+  }
+</ul>
