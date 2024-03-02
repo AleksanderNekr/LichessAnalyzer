@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component } from '@angular/core';
 import { AsyncPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { AuthService } from "../../auth/auth.service";
@@ -13,16 +13,9 @@ import { AuthService } from "../../auth/auth.service";
   templateUrl: './login-menu.component.html',
   styleUrl: './login-menu.component.css'
 })
-export class LoginMenuComponent implements OnInit {
-  public isAuthenticated: boolean = false
-  public userName: string | undefined
+export class LoginMenuComponent {
 
-  constructor(private readonly authService: AuthService) {
-  }
-
-  ngOnInit(): void {
-    this.isAuthenticated = this.authService.isAuthenticated()
-    this.userName = this.authService.getUserName()
+  constructor(protected readonly authService: AuthService) {
   }
 
   logout() {
