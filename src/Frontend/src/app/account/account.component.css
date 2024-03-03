@@ -1,0 +1,30 @@
+.profile-container {
+  max-width: 25em;
+  margin: 0 auto;
+  border: 0.2em solid #ccc;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+.profile-image {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.profile-image svg {
+  width: 7rem;
+  height: 7rem;
+}
+
+.profile-info label {
+  font-weight: bold;
+}
+
+.profile-info p {
+  margin-bottom: 1rem;
+}
+
+.inline {
+  display: inline;
+  margin-left: 0.6rem;
+}

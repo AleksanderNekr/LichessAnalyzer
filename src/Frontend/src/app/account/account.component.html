@@ -1,0 +1,39 @@
+<div class="container profile-container">
+  <div class="profile-image">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+      <path
+        d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"/>
+    </svg>
+  </div>
+  <h2 class="text-center mb-4">Your Profile</h2>
+  <div class="profile-info">
+    <div class="col-md-auto">
+      <div class="form-group mb-4">
+        <label for="username">Username:</label>
+        <p class="form-control-static inline" id="username">{{ authService.getUserName() }}</p>
+      </div>
+      <div class="form-group mb-4">
+        <label for="fullname">Name:</label>
+        <p class="form-control-static inline" id="fullname">{{ authService.getFullName() }}</p>
+      </div>
+      <div class="form-group mb-4">
+        <label for="email">Email:</label>
+        <p class="form-control-static inline" id="email">{{ authService.getUserInfo()?.email }}</p>
+      </div>
+      <div class="form-group mb-4">
+        <label for="maxPlayers">Max Players in List:</label>
+        <p class="form-control-static inline" id="maxPlayers">{{ authService.getUserInfo()?.maxPlayersInList }}</p>
+      </div>
+      <div class="form-group mb-4">
+        <label for="maxLists">Max Lists Count:</label>
+        <p class="form-control-static inline" id="maxLists">{{ authService.getUserInfo()?.maxListsCount }}</p>
+      </div>
+    </div>
+    <div class="text-center mt-5">
+      <button class="btn btn-danger"
+              (click)="deleteAccount()">
+        Delete Account
+      </button>
+    </div>
+  </div>
+</div>
