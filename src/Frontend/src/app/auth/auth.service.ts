@@ -1,5 +1,6 @@
 ﻿import { computed, effect, Injectable, signal } from '@angular/core';
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { catchError, throwError } from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,35 @@ export class AuthService {
     effect(() => {
       this.userSignal()
     });
+  }
+
+  deleteAccount() {
+    const request = this.httpClient.delete("/account")
+      .pipe(
+        catchError(this.handleAfterDelete)
+      )
+    return request.subscribe(value => console.log("Subscription res: ", value))
+  }
+
+  private handleAfterDelete(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      console.error('An error occurred:', error.error.message);
+    }
+
+    switch (error.status) {
+      case 0: {
+        window.location.href = "/account/login"
+        return "need to login"
+      }
+      case 200: {
+        window.location.href = error.url!
+        return "ok"
+      }
+      default:
+        console.error('An unexpected error occurred');
+    }
+
+    return throwError(error.statusText)
   }
 }
 
