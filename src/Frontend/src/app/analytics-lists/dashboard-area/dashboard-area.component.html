@@ -1,0 +1,8 @@
+@if (selectedList !== null) {
+  <h2>{{ selectedList.name }}</h2>
+  @for (player of selectedList.listedPlayers; track player.id) {
+    <p>{{ player.id }}</p>
+  }
+} @else {
+  <p class="fs-3">No list selected, please select one from left side menu</p>
+}
