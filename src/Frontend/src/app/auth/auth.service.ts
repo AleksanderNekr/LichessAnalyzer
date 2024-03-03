@@ -15,6 +15,8 @@ export class AuthService {
 
   public isAuthenticated = computed(() => this.userSignal() !== null)
   public getUserName = computed(() => this.userSignal()?.username);
+  public getFullName = computed(() => this.userSignal()?.lastName + " " + this.userSignal()?.firstName);
+  public getUserInfo = computed(() => this.userSignal())
 
   public loadUser() {
     const request = this.httpClient.get<IUser>("/user-info")
