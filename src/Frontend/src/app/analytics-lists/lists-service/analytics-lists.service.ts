@@ -17,15 +17,12 @@ export class AnalyticsListsService {
       .subscribe(value => this.lists.set(value))
   }
 
-  create() {
-    return this.http.post<IList>("/api/players-lists",
-      {
-        name: "TestList-2",
-        ids: [ "AleksanderNekr", "Yuran11" ]
-      }).subscribe(value => this.lists.update(
-      l => {
-        l.push(value)
-        return l
-      }))
+  createByPlayers(name: string, playersIds: string[]) {
+    return this.http.post<IList>("/api/players-lists", { name: name, ids: playersIds })
+      .subscribe(newList => this.lists.update(
+        lists => {
+          lists.push(newList)
+          return lists
+        }))
   }
 }
