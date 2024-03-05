@@ -1,0 +1,125 @@
+<div class="modal-header">
+  <h4 class="modal-title">Create Analytics List</h4>
+  <button class="btn-close" aria-label="close"
+          (click)="activeModal.dismiss('x-btn clicked')">
+  </button>
+</div>
+<div class="modal-body">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-9">
+        <div class="row">
+          <div class="col-md-auto">
+            <h5>Search Players to add</h5>
+            <div class="pt-2">
+              <div
+                class=" form-floating d-inline-flex border border-dark border-2 border-opacity-50 rounded-2 p-1 m-1 ps-3 me-2 align-items-center">
+                <p class="form-label me-3 mb-0">Search among:</p>
+                <div class="form-check form-check-inline">
+                  <input [(ngModel)]="selectedSearchAmongPlayers" [value]="true" class="form-check-input" type="radio"
+                         id="among-players" name="among" checked>
+                  <label class="form-check-label" for="among-players">Players</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input [(ngModel)]="selectedSearchAmongPlayers" [value]="false" class="form-check-input" type="radio"
+                         id="among-teams" name="among">
+                  <label class="form-check-label" for="among-teams">Teams</label>
+                </div>
+              </div>
+              <div
+                class=" form-floating d-inline-flex border border-dark border-2 border-opacity-50 rounded-2 p-1 m-1 ps-3 me-2 align-items-center">
+                <p class="form-label me-3 mb-0">Search by:</p>
+                <div class="form-check form-check-inline">
+                  <input [(ngModel)]="selectedSearchByName" [value]="true" class="form-check-input" type="radio"
+                         id="by-name" name="by" checked>
+                  <label class="form-check-label" for="by-name">Name</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input [(ngModel)]="selectedSearchByName" [value]="false" class="form-check-input" type="radio"
+                         id="by-ID" name="by">
+                  <label class="form-check-label" for="by-ID">ID</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-9 w-100">
+            <div class="d-flex">
+              <div>
+                <h5 class="py-3 pb-0">Search results</h5>
+                <div class="m-1 d-inline-flex py-1">
+                  <form [formGroup]="searchFormGroup" class="input-group mw-100">
+                    <input type="search" class="form-control" placeholder="Type to search"
+                           formControlName="searchField">
+                    <button [disabled]="searchFormGroup.invalid" type="submit"
+                            class="btn btn-outline-secondary bi-search"
+                            (click)="handleSearch()"></button>
+                  </form>
+                </div>
+              </div>
+              <div class="ps-4">
+                <h5 class="py-3 pb-0">Input List name</h5>
+                <div class="m-1 py-1 pb-0 pt-2">
+                  <input type="search"
+                         class="form-control {{ listNameInvalid() ? 'border-danger' : '' }}"
+                         placeholder="Input List name"
+                         [formControl]="listName">
+                  @if (listNameInvalid()) {
+                    <p class="text-danger fs-6 m-0 p-0">Should be at least 3 symbols</p>
+                  }
+                </div>
+              </div>
+            </div>
+            <div>
+              @if (searchResults.length === 0 && playersIdsSearchResult.length === 0) {
+                <p>No results</p>
+              } @else if (lastSearchWasByPlayers) {
+                @for (result of playersIdsSearchResult; track $index) {
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" (change)="onSelectedPlayerChange(result)"
+                           id="search-{{ result }}" name="search">
+                    <label class="form-check-label" for="search-{{ result }}">{{ result }}</label>
+                  </div>
+                }
+                <button (click)="saveDraftPlayersIds()" class="btn btn-outline-primary bi-check2 my-3">&nbsp;Save
+                                                                                                       selected
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="m-1">
+          <h5>Selected players</h5>
+          @if (playersIdsSelected.length === 0) {
+            <p>No players selected</p>
+          } @else {
+            <ol>
+              @for (playerId of playersIdsSelected; track $index) {
+                <div>
+                  <li class="my-1">
+                    <label class="w-75">{{ playerId }}</label>
+                    <button class="btn bi-x-lg w-25" (click)="unselectPlayerId(playerId)"></button>
+                  </li>
+                </div>
+              }
+            </ol>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-outline-dark"
+          (click)="activeModal.close('Close btn clicked')">
+    Close without creation
+  </button>
+  <button class="btn btn-primary"
+          [disabled]="listName.invalid"
+          (click)="handleSubmit()">
+    Accept creation
+  </button>
+</div>
