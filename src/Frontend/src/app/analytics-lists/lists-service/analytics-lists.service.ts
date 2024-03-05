@@ -25,4 +25,8 @@ export class AnalyticsListsService {
           return lists
         }))
   }
+
+  fetchPlayerNames(playerNameStart: string) {
+    return this.http.get<string[]>(`https://lichess.org/api/player/autocomplete?term=${playerNameStart}`)
+  }
 }
