@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, Input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { IList } from "../lists-service/list.model";
 import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
 
@@ -11,32 +11,37 @@ import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
   templateUrl: './dashboard-area.component.html',
   styleUrl: './dashboard-area.component.css'
 })
-export class DashboardAreaComponent {
-  @Input() selectedList: IList | null = null
-  cols = 3
+export class DashboardAreaComponent implements OnInit, OnDestroy {
+  @Input() selectedList: WritableSignal<IList | null> = signal(null)
+  cols = 25
   rowHeight = 50
-  layout: KtdGridLayout = [
-    { id: '0', x: 5, y: 0, w: 2, h: 3 },
-    { id: '1', x: 2, y: 2, w: 1, h: 2 },
-    { id: '2', x: 3, y: 7, w: 1, h: 2 },
-    { id: '3', x: 2, y: 0, w: 3, h: 2 },
-  ]
+  gap = 10
 
-  stopEventPropagation($event: MouseEvent) {
-    $event.preventDefault();
-    $event.stopPropagation();
+  layout: KtdGridLayout = []
+
+  updateLayoutHandle(layout: KtdGridLayout) {
+    this.layout = layout;
   }
 
-  removeItem(id: string) {
-    this.layout = this.ktdArrayRemoveItem(this.layout, (item) => item.id === id);
-  }
+  ngOnInit() {
+    console.log('on init ', this.selectedList()?.id)
+    let layoutJson = localStorage.getItem(this.selectedList()?.id + '-layout')
+    if (layoutJson === null) {
+      this.layout = [
+        { id: '0', x: 17, y: 0, w: 8, h: 4 },
+        { id: '1', x: 0, y: 4, w: 11, h: 3 },
+        { id: '2', x: 11, y: 4, w: 14, h: 3 },
+        { id: '3', x: 0, y: 0, w: 17, h: 4 },
+      ]
 
-  ktdArrayRemoveItem<T>(array: T[], condition: (item: T) => boolean) {
-    const arrayCopy = [ ...array ];
-    const index = array.findIndex((item) => condition(item));
-    if (index > -1) {
-      arrayCopy.splice(index, 1);
+      return
     }
-    return arrayCopy;
+
+    this.layout = JSON.parse(layoutJson)
+  }
+
+  ngOnDestroy() {
+    console.log('on destroy ', this.selectedList()?.id)
+    localStorage.setItem(this.selectedList()?.id + '-layout', JSON.stringify(this.layout))
   }
 }

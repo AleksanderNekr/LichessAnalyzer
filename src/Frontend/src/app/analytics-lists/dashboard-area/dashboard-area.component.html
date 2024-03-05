@@ -1,22 +1,20 @@
-@if (selectedList !== null) {
-  <h2>{{ selectedList.name }}</h2>
-  @for (player of selectedList.listedPlayers; track player.id) {
+@if (selectedList() !== null) {
+  <h2>{{ selectedList()?.name }}</h2>
+  @for (player of selectedList()?.listedPlayers; track player.id) {
     <p>{{ player.id }}</p>
   }
 
-  <div class="grid-container">
+  <div class="">
     <ktd-grid [cols]="cols"
               [rowHeight]="rowHeight"
               [layout]="layout"
-              scrollSpeed="4">
+              (layoutUpdated)="updateLayoutHandle($event)"
+              scrollSpeed="4"
+              [gap]="gap">
       @for (item of layout; track $index) {
         <ktd-grid-item [id]="item.id"
-                       class="border border-2 border-dark">
-          <div class="grid-item-content">{{ item.id }}</div>
-          <button class="btn bi-x m-3 p-0"
-                  (mousedown)="stopEventPropagation($event)"
-                  (click)="removeItem(item.id)">
-          </button>
+                       class="border border-2 border-dark p-1 rounded-3 border-opacity-25">
+          <div class="">{{ item.id }}</div>
         </ktd-grid-item>
       }
     </ktd-grid>
