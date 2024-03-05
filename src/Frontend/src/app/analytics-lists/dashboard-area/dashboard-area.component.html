@@ -1,9 +1,5 @@
 @if (selectedList() !== null) {
   <h2>{{ selectedList()?.name }}</h2>
-  @for (player of selectedList()?.listedPlayers; track player.id) {
-    <p>{{ player.id }}</p>
-  }
-
   <div class="">
     <ktd-grid [cols]="cols"
               [rowHeight]="rowHeight"
@@ -11,12 +7,39 @@
               (layoutUpdated)="updateLayoutHandle($event)"
               scrollSpeed="4"
               [gap]="gap">
-      @for (item of layout; track $index) {
-        <ktd-grid-item [id]="item.id"
-                       class="border border-2 border-dark p-1 rounded-3 border-opacity-25">
-          <div class="">{{ item.id }}</div>
-        </ktd-grid-item>
-      }
+      <ktd-grid-item id="0"
+                     class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
+        <ng-template ktdGridItemPlaceholder></ng-template>
+        <h4>Players</h4>
+        <table class="table table-bordered table-responsive-lg">
+          <tr>
+            <th></th>
+            <th>Name</th>
+          </tr>
+          @for (player of selectedList()?.listedPlayers; track $index) {
+            <tr>
+              <td>{{ $index + 1 }}.</td>
+              <td>{{ player.id }}</td>
+            </tr>
+          }
+        </table>
+      </ktd-grid-item>
+
+      <ktd-grid-item id="1"
+                     class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
+        <ng-template ktdGridItemPlaceholder></ng-template>
+        <h4>Players</h4>
+        <table>
+          <tr>
+            <th>Name</th>
+          </tr>
+          @for (player of selectedList()?.listedPlayers; track player.id) {
+            <tr>
+              <td>{{ player.id }}</td>
+            </tr>
+          }
+        </table>
+      </ktd-grid-item>
     </ktd-grid>
   </div>
 

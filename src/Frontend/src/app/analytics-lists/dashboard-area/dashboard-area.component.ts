@@ -1,4 +1,4 @@
-import { Component, computed, Input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { IList } from "../lists-service/list.model";
 import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
 
