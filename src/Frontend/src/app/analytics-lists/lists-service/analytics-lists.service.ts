@@ -9,10 +9,10 @@ export class AnalyticsListsService {
   lists: WritableSignal<IList[]> = signal([])
 
   constructor(private readonly http: HttpClient) {
-    this.fetchAll()
+    this.fetchAllLists()
   }
 
-  fetchAll() {
+  fetchAllLists() {
     return this.http.get<IList[]>("/api/lists?includePlayers=true")
       .subscribe(value => this.lists.set(value))
   }
