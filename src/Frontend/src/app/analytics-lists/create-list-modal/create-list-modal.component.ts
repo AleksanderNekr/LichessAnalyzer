@@ -3,6 +3,7 @@ import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AnalyticsListsService } from "../lists-service/analytics-lists.service";
 import { AuthService } from "../../auth/auth.service";
+import { FetchDataService } from "../fetch-data/fetch-data.service";
 
 @Component({
   selector: 'app-create-list-modal',
@@ -23,6 +24,7 @@ export class CreateListModalComponent {
 
   constructor(protected readonly activeModal: NgbActiveModal,
               private readonly authService: AuthService,
+              private readonly fetchService: FetchDataService,
               private readonly listsService: AnalyticsListsService) {
   }
 
@@ -53,7 +55,7 @@ export class CreateListModalComponent {
     if (this.selectedSearchAmongPlayers) {
       this.lastSearchWasByPlayers = true
       if (this.selectedSearchByName) {
-        this.listsService.fetchPlayerNames(this.searchFormGroup.controls.searchField.value!)
+        this.fetchService.completePlayerNames(this.searchFormGroup.controls.searchField.value!)
           .subscribe(value => {
             console.log('Fetched: ', value)
             return this.playersIdsSearchResult = value;
