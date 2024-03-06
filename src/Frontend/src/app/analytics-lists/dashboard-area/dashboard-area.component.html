@@ -28,7 +28,7 @@
       <ktd-grid-item id="1"
                      class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
         <ng-template ktdGridItemPlaceholder></ng-template>
-        <app-line-graph></app-line-graph>
+        <app-line-graph [xAxisData]="dates" [yAxisData]="rates"></app-line-graph>
       </ktd-grid-item>
     </ktd-grid>
   </div>

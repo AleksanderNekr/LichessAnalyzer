@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { NgxEchartsDirective, provideEcharts } from "ngx-echarts";
 import { EChartsOption } from 'echarts'
 
@@ -15,24 +15,38 @@ import { EChartsOption } from 'echarts'
     <div echarts [options]="options" class="echarts"></div>
   `
 })
-export class LineGraphComponent {
-  protected options: EChartsOption = {
-    xAxis: {
-      type: 'category',
-      data: [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ],
-    },
-    yAxis: {
-      type: 'value',
-    },
-    series: [
-      {
-        data: [ 820, 932, 901, 934, 1290, 1330, 1320 ],
-        type: 'line',
+export class LineGraphComponent implements OnChanges {
+  @Input({ required: true }) xAxisData!: string[];
+  @Input({ required: true }) yAxisData!: number[];
+
+  options: EChartsOption = {};
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['xAxisData'] || changes['yAxisData']) {
+      this.updateOptions();
+    }
+  }
+
+  private updateOptions(): void {
+    this.options = {
+      xAxis: {
+        type: 'category',
+        data: this.xAxisData,
       },
-    ],
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b} : {c}',
-    },
+      yAxis: {
+        type: 'value',
+      },
+      series: [
+        {
+          name: "Rating",
+          data: this.yAxisData,
+          type: 'line',
+        },
+      ],
+      tooltip: {
+        trigger: 'item',
+        formatter: '{a} <br/>{b}: {c}',
+      },
+    };
   }
 }

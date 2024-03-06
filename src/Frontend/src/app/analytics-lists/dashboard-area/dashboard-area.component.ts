@@ -20,6 +20,8 @@ export class DashboardAreaComponent implements OnInit, OnDestroy {
   gap = 10
 
   layout: KtdGridLayout = []
+  public dates: string[] = [ '2023-01-01', '2024-01-01', '2024-01-21' ]
+  public rates: number[] = [ 1500, 1623, 1711 ]
 
   updateLayoutHandle(layout: KtdGridLayout) {
     this.layout = layout;
