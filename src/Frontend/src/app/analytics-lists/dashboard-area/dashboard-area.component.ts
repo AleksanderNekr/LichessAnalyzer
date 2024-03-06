@@ -1,12 +1,14 @@
 import { Component, Input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { IList } from "../lists-service/list.model";
 import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
+import { LineGraphComponent } from "./graphs/line-graph/line-graph.component";
 
 @Component({
   selector: 'app-dashboard-area',
   standalone: true,
   imports: [
-    KtdGridModule
+    KtdGridModule,
+    LineGraphComponent
   ],
   templateUrl: './dashboard-area.component.html',
   styleUrl: './dashboard-area.component.css'

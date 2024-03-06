@@ -28,17 +28,7 @@
       <ktd-grid-item id="1"
                      class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
         <ng-template ktdGridItemPlaceholder></ng-template>
-        <h4>Players</h4>
-        <table>
-          <tr>
-            <th>Name</th>
-          </tr>
-          @for (player of selectedList()?.listedPlayers; track player.id) {
-            <tr>
-              <td>{{ player.id }}</td>
-            </tr>
-          }
-        </table>
+        <app-line-graph></app-line-graph>
       </ktd-grid-item>
     </ktd-grid>
   </div>
