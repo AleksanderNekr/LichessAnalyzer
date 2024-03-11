@@ -1,22 +1,22 @@
 <div class="container-fluid">
   <div class="row">
-    <div class="col-md-2">
+    <div class="col-md-2 list-group-item">
       <div class="form-control p-3 text-center">
         <h2 class="mx-2 mb-3">Your Lists</h2>
         <button class="btn btn-outline-success mx-2 w-75 h-25" (click)="createList()">Add List</button>
       </div>
       @if (listsService.lists().length > 0) {
-        <div class="list-group">
+        <div class="list-group d-flex">
           @for (list of listsService.lists(); track $index) {
-            <button class="list-group-item list-group-item-action {{ markIfSelected(list.id) }}"
+            <button class="list-group-item list-group-item-action {{ markIfSelected(list.id) }} d-inline-flex"
                     (click)="selectList(list)">
-              {{ list.name }}
+              <label class="w-75 text-start align-self-center">{{ list.name }}</label>
             </button>
           }
         </div>
       }
     </div>
-    <div class="col-md-8">
+    <div class="col-md-10">
       <div class="content">
         @if (listsService.lists().length === 0) {
           <p class="fs-3">Here will be a dashboard for selected list, please create one by clicking `Add List`
