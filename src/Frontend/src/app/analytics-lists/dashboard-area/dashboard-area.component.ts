@@ -71,12 +71,11 @@ export class DashboardAreaComponent {
 
           this.playersStats.push({
             name: player.nickname,
-            data: rates.slice(rates.length - 30, rates.length),
+            data: rates,
             type: "line"
           })
         }
-        this.dates = dates.sort((date1, date2) => date2.getDate() - date1.getDate())
-        this.dates = this.dates.slice(this.dates.length - 30, this.dates.length)
+        this.dates = dates.sort((date1, date2) => date1.getTime() - date2.getTime())
       })
   }
 
