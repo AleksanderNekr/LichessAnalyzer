@@ -1,4 +1,10 @@
-import { Component, Input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import {
+  Component,
+  effect,
+  Input,
+  signal,
+  WritableSignal
+} from '@angular/core';
 import { IList } from "../lists-service/list.model";
 import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
 import { LineGraphComponent } from "./graphs/line-graph/line-graph.component";
@@ -13,8 +19,10 @@ import { LineGraphComponent } from "./graphs/line-graph/line-graph.component";
   templateUrl: './dashboard-area.component.html',
   styleUrl: './dashboard-area.component.css'
 })
-export class DashboardAreaComponent implements OnInit, OnDestroy {
+export class DashboardAreaComponent {
   @Input() selectedList: WritableSignal<IList | null> = signal(null)
+  @Input() prevSelectedList: WritableSignal<IList | null> = signal(null)
+
   cols = 25
   rowHeight = 50
   gap = 10
@@ -27,8 +35,14 @@ export class DashboardAreaComponent implements OnInit, OnDestroy {
     this.layout = layout;
   }
 
+  constructor() {
+    effect(() => {
+      localStorage.setItem(this.prevSelectedList()?.id + '-layout', JSON.stringify(this.layout))
+      this.ngOnInit()
+    });
+  }
+
   ngOnInit() {
-    console.log('on init ', this.selectedList()?.id)
     let layoutJson = localStorage.getItem(this.selectedList()?.id + '-layout')
     if (layoutJson === null || layoutJson === '[]') {
       this.layout = [
@@ -42,10 +56,5 @@ export class DashboardAreaComponent implements OnInit, OnDestroy {
     }
 
     this.layout = JSON.parse(layoutJson)
-  }
-
-  ngOnDestroy() {
-    console.log('on destroy ', this.selectedList()?.id)
-    localStorage.setItem(this.selectedList()?.id + '-layout', JSON.stringify(this.layout))
   }
 }

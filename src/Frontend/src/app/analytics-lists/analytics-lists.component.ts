@@ -19,6 +19,7 @@ export class AnalyticsListsComponent {
 
   private readonly _selected: IList | null = null
   @Output() selectedList = signal(this._selected)
+  @Output() prevSelectedList = signal(this._selected)
 
   constructor(private readonly modalService: NgbModal,
               protected readonly listsService: AnalyticsListsService) {
@@ -30,6 +31,7 @@ export class AnalyticsListsComponent {
 
 
   selectList(list: IList) {
+    this.prevSelectedList.set(this.selectedList())
     this.selectedList.set(list)
     localStorage.setItem("lastSelected", JSON.stringify(list))
   }
