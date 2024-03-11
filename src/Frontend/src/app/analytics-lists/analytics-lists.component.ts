@@ -29,8 +29,10 @@ export class AnalyticsListsComponent {
     }
   }
 
-
-  selectList(list: IList) {
+  selectList(list: IList | null) {
+    if (this.selectedList()?.id === list?.id) {
+      return
+    }
     this.prevSelectedList.set(this.selectedList())
     this.selectedList.set(list)
     this.listsStorageService.saveLastSelectedList(list)
