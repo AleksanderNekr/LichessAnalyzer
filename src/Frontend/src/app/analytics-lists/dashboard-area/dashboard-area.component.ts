@@ -30,7 +30,7 @@ export class DashboardAreaComponent implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('on init ', this.selectedList()?.id)
     let layoutJson = localStorage.getItem(this.selectedList()?.id + '-layout')
-    if (layoutJson === null) {
+    if (layoutJson === null || layoutJson === '[]') {
       this.layout = [
         { id: '0', x: 17, y: 0, w: 8, h: 4 },
         { id: '1', x: 0, y: 4, w: 11, h: 3 },
