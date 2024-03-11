@@ -4,7 +4,9 @@ import { DashboardAreaComponent } from "./dashboard-area/dashboard-area.componen
 import { IList } from "./lists-service/list.model";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { CreateListModalComponent } from "./create-list-modal/create-list-modal.component";
+import { ModalDialogComponent } from "../modals/modal-dialog/modal-dialog.component";
 import { ListsStorageService } from "./dashboard-area/storage-service/lists-storage.service";
+import { ButtonStyle } from "../modals/modal-dialog/button.style";
 
 @Component({
   selector: 'app-analytics-lists',
@@ -44,5 +46,23 @@ export class AnalyticsListsComponent {
 
   createList() {
     this.modalService.open(CreateListModalComponent, { size: "xl" })
+  }
+
+  showDeleteForm(list: IList) {
+    let modal = this.modalService.open(ModalDialogComponent)
+    modal.componentInstance.setSubmitCallback(() => {
+      this.selectList(this.listsService.lists().find(l => l.id != list.id) ?? null)
+      this.listsStorageService.deleteDashboardLayout(list.id)
+      this.listsService.delete(list.id)
+    })
+
+    modal.componentInstance.setTexts(
+      `Confirm ${ list.name } list deletion`,
+      'Are you really want to Delete this list?',
+      "Yes, Delete",
+      "No, keep as is"
+    )
+
+    modal.componentInstance.setSubmitBtnStyle(ButtonStyle.Danger)
   }
 }

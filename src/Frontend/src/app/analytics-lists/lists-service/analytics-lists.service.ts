@@ -25,4 +25,10 @@ export class AnalyticsListsService {
           return lists
         }))
   }
+
+  delete(listId: string) {
+    return this.http.delete(`api/lists/${ listId }`)
+      .subscribe(_ => this.lists.update(
+        lists => lists.filter(l => l.id != listId)))
+  }
 }
