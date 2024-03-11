@@ -11,6 +11,9 @@
             <button class="list-group-item list-group-item-action {{ markIfSelected(list.id) }} d-inline-flex"
                     (click)="selectList(list)">
               <label class="w-75 text-start align-self-center">{{ list.name }}</label>
+              <div class="d-inline-flex">
+                <button class="btn bi-trash px-0" (click)="showDeleteForm(list)"></button>
+              </div>
             </button>
           }
         </div>
