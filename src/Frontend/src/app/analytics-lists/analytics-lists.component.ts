@@ -4,6 +4,7 @@ import { DashboardAreaComponent } from "./dashboard-area/dashboard-area.componen
 import { IList } from "./lists-service/list.model";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { CreateListModalComponent } from "./create-list-modal/create-list-modal.component";
+import { ListsStorageService } from "./dashboard-area/storage-service/lists-storage.service";
 
 @Component({
   selector: 'app-analytics-lists',
@@ -20,8 +21,9 @@ export class AnalyticsListsComponent {
   @Output() prevSelectedList = signal(this._selected)
 
   constructor(private readonly modalService: NgbModal,
+              private readonly listsStorageService: ListsStorageService,
               protected readonly listsService: AnalyticsListsService) {
-    let listJson = localStorage.getItem("lastSelected")
+    let listJson = listsStorageService.getLastSelectedList()
     if (listJson !== null) {
       this.selectedList.set(JSON.parse(listJson))
     }
@@ -31,7 +33,7 @@ export class AnalyticsListsComponent {
   selectList(list: IList) {
     this.prevSelectedList.set(this.selectedList())
     this.selectedList.set(list)
-    localStorage.setItem("lastSelected", JSON.stringify(list))
+    this.listsStorageService.saveLastSelectedList(list)
   }
 
   markIfSelected(id: string) {

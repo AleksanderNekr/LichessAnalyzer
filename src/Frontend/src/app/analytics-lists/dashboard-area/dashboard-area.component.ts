@@ -6,6 +6,7 @@ import { FetchDataService } from "../fetch-data/fetch-data.service";
 import { Stat } from "../fetch-data/models/stat";
 import { Category } from "../fetch-data/models/category";
 import { Subscription } from "rxjs";
+import { ListsStorageService } from "./storage-service/lists-storage.service";
 
 @Component({
   selector: 'app-dashboard-area',
@@ -34,9 +35,10 @@ export class DashboardAreaComponent {
     this.layout = layout;
   }
 
-  constructor(private readonly fetchDataService: FetchDataService) {
+  constructor(private readonly fetchDataService: FetchDataService,
+              private readonly listsStorageService: ListsStorageService) {
     effect(() => {
-      localStorage.setItem(this.prevSelectedList()?.id + '-layout', JSON.stringify(this.layout))
+      listsStorageService.saveDashboardLayout(this.prevSelectedList()?.id + '-layout', this.layout)
       this.ngOnInit()
     }, { allowSignalWrites: true });
   }
@@ -80,7 +82,7 @@ export class DashboardAreaComponent {
   }
 
   updateCurrentLayout() {
-    let layoutJson = localStorage.getItem(this.selectedList()?.id + '-layout')
+    let layoutJson = this.listsStorageService.getDashboardLayout(this.selectedList()?.id + '-layout')
     if (layoutJson === null || layoutJson === '[]') {
       this.layout = [
         { id: '0', x: 17, y: 0, w: 8, h: 4 },
