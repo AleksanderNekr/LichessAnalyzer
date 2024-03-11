@@ -16,8 +16,8 @@ import { EChartsOption } from 'echarts'
   `
 })
 export class LineGraphComponent implements OnChanges {
-  @Input({ required: true }) xAxisData!: string[];
-  @Input({ required: true }) yAxisData!: number[];
+  @Input({ required: true }) xAxisData!: Date[]
+  @Input({ required: true }) yAxisData!: { 'name': string, data: number[], 'type': 'line' }[]
 
   options: EChartsOption = {};
 
@@ -31,18 +31,12 @@ export class LineGraphComponent implements OnChanges {
     this.options = {
       xAxis: {
         type: 'category',
-        data: this.xAxisData,
+        data: this.xAxisData.map(date => date.toDateString()),
       },
       yAxis: {
         type: 'value',
       },
-      series: [
-        {
-          name: "Rating",
-          data: this.yAxisData,
-          type: 'line',
-        },
-      ],
+      series: this.yAxisData,
       tooltip: {
         trigger: 'item',
         formatter: '{a} <br/>{b}: {c}',

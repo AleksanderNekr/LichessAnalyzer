@@ -1,13 +1,11 @@
-import {
-  Component,
-  effect,
-  Input,
-  signal,
-  WritableSignal
-} from '@angular/core';
+import { Component, effect, Input, signal, WritableSignal } from '@angular/core';
 import { IList } from "../lists-service/list.model";
 import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
 import { LineGraphComponent } from "./graphs/line-graph/line-graph.component";
+import { FetchDataService } from "../fetch-data/fetch-data.service";
+import { Stat } from "../fetch-data/models/stat";
+import { Category } from "../fetch-data/models/category";
+import { Subscription } from "rxjs";
 
 @Component({
   selector: 'app-dashboard-area',
@@ -28,21 +26,61 @@ export class DashboardAreaComponent {
   gap = 10
 
   layout: KtdGridLayout = []
-  public dates: string[] = [ '2023-01-01', '2024-01-01', '2024-01-21' ]
-  public rates: number[] = [ 1500, 1623, 1711 ]
+  public dates = [ new Date('2023-01-01'), new Date('2024-01-01'), new Date('2024-01-21') ]
+  public playersStats: { data: number[]; name: string; type: 'line' }[] = []
+  private updateSub: Subscription | null = null
 
   updateLayoutHandle(layout: KtdGridLayout) {
     this.layout = layout;
   }
 
-  constructor() {
+  constructor(private readonly fetchDataService: FetchDataService) {
     effect(() => {
       localStorage.setItem(this.prevSelectedList()?.id + '-layout', JSON.stringify(this.layout))
       this.ngOnInit()
-    });
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit() {
+    this.updateCurrentLayout()
+    if (this.selectedList()?.listedPlayers) {
+      this.updateSub = this.updateData()
+    }
+  }
+
+  ngOnDestroy() {
+    this.updateSub?.unsubscribe()
+  }
+
+  private updateData() {
+    let ids: string[] = []
+    for (let player of this.selectedList()?.listedPlayers!) {
+      ids.push(player.id)
+    }
+
+    this.playersStats = []
+    return this.fetchDataService.fetchPlayers(ids, [ Stat.Ratings ], [ Category.Classical ])
+      .subscribe(players => {
+        let dates: Date[] = []
+        for (const player of players) {
+          let rates: number[] = []
+          for (let rating of player.ratingsHistories[0].ratingsPerDate) {
+            rates.push(rating.rating)
+            dates.push(new Date(rating.actualityDate))
+          }
+
+          this.playersStats.push({
+            name: player.nickname,
+            data: rates.slice(rates.length - 30, rates.length),
+            type: "line"
+          })
+        }
+        this.dates = dates.sort((date1, date2) => date2.getDate() - date1.getDate())
+        this.dates = this.dates.slice(this.dates.length - 30, this.dates.length)
+      })
+  }
+
+  updateCurrentLayout() {
     let layoutJson = localStorage.getItem(this.selectedList()?.id + '-layout')
     if (layoutJson === null || layoutJson === '[]') {
       this.layout = [
