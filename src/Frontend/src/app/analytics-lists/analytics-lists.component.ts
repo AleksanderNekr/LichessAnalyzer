@@ -15,8 +15,6 @@ import { CreateListModalComponent } from "./create-list-modal/create-list-modal.
   styleUrl: './analytics-lists.component.css'
 })
 export class AnalyticsListsComponent {
-  lists = computed(() => this.listsService.lists());
-
   private readonly _selected: IList | null = null
   @Output() selectedList = signal(this._selected)
   @Output() prevSelectedList = signal(this._selected)
