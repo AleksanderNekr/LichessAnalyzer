@@ -32,7 +32,7 @@ export class CreateListModalComponent {
   selectedSearchAmongPlayers = true
   searchFormGroup = new FormGroup({
     searchField: new FormControl(
-      '', [ Validators.minLength(3), Validators.maxLength(25) ]),
+      '', [ Validators.required, Validators.minLength(3), Validators.maxLength(25) ]),
   })
 
   listName = new FormControl(
