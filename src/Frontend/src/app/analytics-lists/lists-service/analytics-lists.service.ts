@@ -31,4 +31,15 @@ export class AnalyticsListsService {
       .subscribe(_ => this.lists.update(
         lists => lists.filter(l => l.id != listId)))
   }
+
+  updateName(listId: string, newName: string) {
+    return this.http.put(`api/lists/${ listId }/${ newName }`, null)
+      .subscribe(_ => this.lists.update(
+        lists => {
+          let changingList = lists.find(l => l.id === listId)
+          changingList!.name = newName
+          return lists
+        }
+      ))
+  }
 }
