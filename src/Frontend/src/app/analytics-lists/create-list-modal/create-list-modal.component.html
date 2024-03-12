@@ -52,7 +52,7 @@
                   <form [formGroup]="searchFormGroup" class="input-group mw-100">
                     <input type="search" class="form-control" placeholder="Type to search"
                            formControlName="searchField">
-                    <button [disabled]="searchFormGroup.invalid" type="submit"
+                    <button [disabled]="searchFormGroup.controls.searchField.invalid" type="submit"
                             class="btn btn-outline-secondary bi-search"
                             (click)="handleSearch()"></button>
                   </form>
