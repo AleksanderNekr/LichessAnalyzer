@@ -7,6 +7,7 @@ import { CreateListModalComponent } from "./create-list-modal/create-list-modal.
 import { ModalDialogComponent } from "../modals/modal-dialog/modal-dialog.component";
 import { ListsStorageService } from "./dashboard-area/storage-service/lists-storage.service";
 import { ButtonStyle } from "../modals/modal-dialog/button.style";
+import { EditListModalComponent } from "./edit-list-modal/edit-list-modal.component";
 
 @Component({
   selector: 'app-analytics-lists',
@@ -46,6 +47,12 @@ export class AnalyticsListsComponent {
 
   createList() {
     this.modalService.open(CreateListModalComponent, { size: "xl" })
+  }
+
+  showEditListForm(list: IList) {
+    let modal = this.modalService.open(EditListModalComponent)
+    modal.componentInstance.setListId(list.id)
+    modal.componentInstance.setOldName(list.name)
   }
 
   showDeleteForm(list: IList) {

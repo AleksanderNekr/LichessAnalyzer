@@ -12,6 +12,7 @@
                     (click)="selectList(list)">
               <label class="w-75 text-start align-self-center">{{ list.name }}</label>
               <div class="d-inline-flex">
+                <button class="btn bi-pen mx-3 px-0" (click)="showEditListForm(list)"></button>
                 <button class="btn bi-trash px-0" (click)="showDeleteForm(list)"></button>
               </div>
             </button>
