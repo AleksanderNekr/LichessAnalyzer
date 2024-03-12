@@ -46,8 +46,8 @@ export class CreateListModalComponent {
     this.searchResults = []
     this.playersIdsSearchResult = []
     this.draftPlayersIdsSelected = []
+    this.searchFormGroup.controls.searchField.setValue(this.searchFormGroup.controls.searchField.value?.trim() ?? '')
     if (this.searchFormGroup.invalid) {
-      alert('invalid')
       return
     }
 
@@ -73,6 +73,10 @@ export class CreateListModalComponent {
   }
 
   handleSubmit() {
+    this.listName.setValue(this.listName.value!.trim())
+    if (this.listName.invalid) {
+      return
+    }
     if (this.authService.isAuthenticated()) {
       this.listsService.createByPlayers(this.listName.value!, this.playersIdsSelected)
     } else {
