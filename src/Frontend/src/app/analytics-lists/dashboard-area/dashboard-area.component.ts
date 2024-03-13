@@ -7,6 +7,8 @@ import { Stat } from "../fetch-data/models/stat";
 import { Category } from "../fetch-data/models/category";
 import { Subscription } from "rxjs";
 import { ListsStorageService } from "./storage-service/lists-storage.service";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { AddPlayersModalComponent } from "../add-players-modal/add-players-modal.component";
 
 @Component({
   selector: 'app-dashboard-area',
@@ -36,7 +38,8 @@ export class DashboardAreaComponent {
   }
 
   constructor(private readonly fetchDataService: FetchDataService,
-              private readonly listsStorageService: ListsStorageService) {
+              private readonly listsStorageService: ListsStorageService,
+              private readonly modalService: NgbModal) {
     effect(() => {
       listsStorageService.saveDashboardLayout(this.prevSelectedList()?.id + '-layout', this.layout)
       this.ngOnInit()
@@ -95,5 +98,17 @@ export class DashboardAreaComponent {
     }
 
     this.layout = JSON.parse(layoutJson)
+  }
+
+  addPlayersHandle() {
+    if (!this.selectedList()) {
+      return
+    }
+    let modal = this.modalService.open(AddPlayersModalComponent, { size: "xl" })
+    modal.componentInstance.setList(this.selectedList()!)
+    modal.componentInstance.setSubmitCallback(() => {
+      this.selectedList()
+      this.updateData()
+    })
   }
 }

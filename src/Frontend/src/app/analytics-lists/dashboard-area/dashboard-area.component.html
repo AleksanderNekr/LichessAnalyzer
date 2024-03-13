@@ -1,4 +1,6 @@
-@if (selectedList() !== null && selectedList()!.listedPlayers.length > 0) {
+@if (selectedList() === null) {
+  <p class="fs-3">No list selected, please select one from left side menu</p>
+} @else if (selectedList()!.listedPlayers && selectedList()!.listedPlayers.length > 0) {
   <h2>{{ selectedList()?.name }}</h2>
   <div class="">
     <ktd-grid [cols]="cols"
@@ -32,10 +34,7 @@
       </ktd-grid-item>
     </ktd-grid>
   </div>
-
-} @else if (selectedList() === null) {
-  <p class="fs-3">No list selected, please select one from left side menu</p>
-} @else if (selectedList()!.listedPlayers.length === 0) {
+} @else if (!selectedList()!.listedPlayers || selectedList()!.listedPlayers.length === 0) {
   <div class="d-flex justify-content-center align-items-center">
     <div class="text-center">
       <p class="fs-3">No players in list to analyze, please add some</p>
