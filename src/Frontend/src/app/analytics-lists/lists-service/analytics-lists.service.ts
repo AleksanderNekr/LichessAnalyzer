@@ -1,4 +1,4 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { effect, Injectable, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { IList } from "./list.model"
 
@@ -22,6 +22,23 @@ export class AnalyticsListsService {
       .subscribe(newList => this.lists.update(
         lists => {
           lists.push(newList)
+          return lists
+        }))
+  }
+
+  addPlayers(list: IList, playersIdsSelected: string[]) {
+    return this.http.post(`api/lists/${ list.id }/players`, playersIdsSelected)
+      .subscribe(_ => this.lists.update(
+        lists => {
+          let players = list.listedPlayers ?? []
+          for (const id of playersIdsSelected) {
+            players.push({ id: id, containingListId: list.id })
+          }
+          list.listedPlayers = players
+
+          let i = lists.findIndex(value => value.id === list.id)
+          lists[i] = list
+
           return lists
         }))
   }
