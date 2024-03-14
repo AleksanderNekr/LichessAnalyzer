@@ -40,7 +40,7 @@ public class LichessDataService(HttpClient httpClient, ILogger<LichessDataServic
             {
                 IReadOnlyList<RatingHistory>       ratingsHistories     = await GetRatingsHistoriesAsync(userResponse.Id, cancellationToken);
                 IReadOnlyList<GamesList>           gamesLists           = GetGamesListsAsync();
-                IReadOnlyList<Statistic>           statistics           = GetStatistics();
+                IReadOnlyList<Statistic>           statistics           = await GetStatisticsAsync(userResponse.Id, cancellationToken);
                 IReadOnlyList<TournamentStatistic> tournamentStatistics = GetTournamentStatistics();
                 IReadOnlyList<TeamResponse>        teams                = GetPlayerTeams();
 
@@ -73,9 +73,31 @@ public class LichessDataService(HttpClient httpClient, ILogger<LichessDataServic
         return (IReadOnlyList<TournamentStatistic>)Enumerable.Empty<TournamentStatistic>();
     }
 
-    private IReadOnlyList<Statistic> GetStatistics()
+    private async Task<IReadOnlyList<Statistic>> GetStatisticsAsync(string userId, CancellationToken cancellationToken)
     {
-        return (IReadOnlyList<Statistic>)Enumerable.Empty<Statistic>();
+        var statisticsResponse = await httpClient.GetFromJsonAsync<List<ActivityResponse>>($"user/{userId}/activity",
+                                                                                           cancellationToken);
+        if (statisticsResponse is null)
+        {
+            return (IReadOnlyList<Statistic>)Enumerable.Empty<Statistic>();
+        }
+
+        List<Statistic> statistics = [ ];
+        foreach (ActivityResponse response in statisticsResponse.Where(response => response.GamesData != null))
+        {
+            DateTime actualityDate = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            actualityDate = actualityDate.AddMilliseconds(response.Interval.End);
+            foreach ((PlayCategory category, Stat stat) in response.GamesData!.Data)
+            {
+                int       gamesAmount = stat.Draws + stat.Losses + stat.Wins;
+                Statistic statistic   = new(category, stat.Wins, stat.Losses, stat.Draws, gamesAmount, actualityDate);
+                statistics.Add(statistic);
+            }
+        }
+
+        logger.LogDebug("Build statistics: {Stats}", statistics);
+
+        return statistics;
     }
 
     private IReadOnlyList<GamesList> GetGamesListsAsync()
@@ -149,8 +171,8 @@ public class LichessDataService(HttpClient httpClient, ILogger<LichessDataServic
 
     public async Task<IReadOnlyList<TeamResponse>> GetTeamsAsync(
         ICollection<string> ids,
-        bool                withParticipants = true,
-        bool                withTournaments = true,
+        bool                withParticipants  = true,
+        bool                withTournaments   = true,
         CancellationToken   cancellationToken = default)
     {
         ids = (ICollection<string>)ids.Take(TeamsLimit);
