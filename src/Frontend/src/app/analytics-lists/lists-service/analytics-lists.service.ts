@@ -1,6 +1,6 @@
-import { effect, Injectable, signal, WritableSignal } from '@angular/core';
+import { Injectable, signal, WritableSignal } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
-import { IList } from "./list.model"
+import { IList, IListedPlayer } from "./list.model"
 
 @Injectable({
   providedIn: 'root'
@@ -58,5 +58,17 @@ export class AnalyticsListsService {
           return lists
         }
       ))
+  }
+
+  removePlayer(list: IList, player: IListedPlayer) {
+    return this.http.delete(`api/lists/${ list?.id }/players`, { body: [ player.id ] })
+      .subscribe(_ => this.lists.update(
+        lists => {
+          list.listedPlayers = list.listedPlayers.filter(p => p.id !== player.id)
+          let i = lists.findIndex(l => l.id === list?.id)
+          lists[i] = list
+
+          return lists
+        }))
   }
 }
