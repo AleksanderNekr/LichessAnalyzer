@@ -16,15 +16,19 @@
           <h4 class="w-50">Players</h4>
           <button class="btn btn-outline-info w-50" (click)="addPlayersHandle()">Add Players</button>
         </div>
-        <table class="table table-bordered table-responsive-lg">
+        <table class="table">
           <tr>
             <th></th>
-            <th>Name</th>
+            <th></th>
+            <th></th>
           </tr>
           @for (player of selectedList()?.listedPlayers; track $index) {
             <tr>
               <td>{{ $index + 1 }}.</td>
               <td>{{ player.id }}</td>
+              <td>
+                <button class="btn bi-x-lg w-auto" (click)="removePlayerHandle(player)"></button>
+              </td>
             </tr>
           }
         </table>
