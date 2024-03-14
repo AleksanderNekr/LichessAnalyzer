@@ -10,6 +10,7 @@ import { ListsStorageService } from "./storage-service/lists-storage.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { AddPlayersModalComponent } from "../add-players-modal/add-players-modal.component";
 import { AnalyticsListsService } from "../lists-service/analytics-lists.service";
+import { IPlayer } from "../fetch-data/models/player";
 
 @Component({
   selector: 'app-dashboard-area',
@@ -30,9 +31,12 @@ export class DashboardAreaComponent {
   gap = 10
 
   layout: KtdGridLayout = []
-  public dates = [ new Date('2023-01-01'), new Date('2024-01-01'), new Date('2024-01-21') ]
+  public ratingsDates = [ new Date('2023-01-01'), new Date('2024-01-01'), new Date('2024-01-21') ]
   public playersStats: { data: number[]; name: string; type: 'line' }[] = []
   private updateSub: Subscription | null = null
+
+  public gamesDates = [ new Date('2023-01-01'), new Date('2024-01-01'), new Date('2024-01-21') ]
+  public gamesStats: { data: number[]; name: string; type: 'line' }[] = []
 
   updateLayoutHandle(layout: KtdGridLayout) {
     this.layout = layout;
@@ -66,27 +70,51 @@ export class DashboardAreaComponent {
     }
 
     this.playersStats = []
+    this.gamesStats = []
     return this.fetchDataService.fetchPlayers(ids, [ Stat.Ratings ], [ Category.Classical ])
       .subscribe(players => {
-        let dates: Date[] = []
-        for (const player of players) {
-          let rates: number[] = []
-          if (!player.ratingsHistories[0]) {
-            continue
-          }
-          for (let rating of player.ratingsHistories[0].ratingsPerDate) {
-            rates.push(rating.rating)
-            dates.push(new Date(rating.actualityDate))
-          }
+        let rateDates: Date[] = []
+        let gameDates: Date[] = []
 
-          this.playersStats.push({
-            name: player.nickname,
-            data: rates,
-            type: "line"
-          })
+        for (const player of players) {
+          this.updatePlayersStats(player, rateDates)
+          this.updateGamesStats(player, gameDates)
         }
-        this.dates = dates.sort((date1, date2) => date1.getTime() - date2.getTime())
+        this.ratingsDates = rateDates.sort((date1, date2) => date1.getTime() - date2.getTime())
+        this.gamesDates = gameDates.sort((date1, date2) => date1.getTime() - date2.getTime())
       })
+  }
+
+  private updatePlayersStats(player: IPlayer, rateDates: Date[]) {
+    let rates: number[] = []
+    if (!player.ratingsHistories[0]) {
+      return
+    }
+    for (let rating of player.ratingsHistories[0].ratingsPerDate) {
+      rates.push(rating.rating)
+      rateDates.push(new Date(rating.actualityDate))
+    }
+    this.playersStats.push({
+      name: player.nickname,
+      data: rates,
+      type: "line"
+    })
+  }
+
+  private updateGamesStats(player: IPlayer, gameDates: Date[]) {
+    let games: number[] = []
+    if (!player.statistics[0]) {
+      return
+    }
+    for (let stat of player.statistics) {
+      games.push(stat.gamesAmount)
+      gameDates.push(new Date(stat.actualityDate))
+    }
+    this.gamesStats.push({
+      name: player.nickname,
+      data: games,
+      type: "line"
+    })
   }
 
   updateCurrentLayout() {

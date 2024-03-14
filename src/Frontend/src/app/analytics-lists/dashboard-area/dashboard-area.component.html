@@ -37,13 +37,18 @@
       <ktd-grid-item id="1"
                      class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
         <ng-template ktdGridItemPlaceholder></ng-template>
-        <app-line-graph title="Ratings" [xAxisData]="dates" [yAxisData]="playersStats"></app-line-graph>
+        <app-line-graph title="Ratings" [xAxisData]="ratingsDates" [yAxisData]="playersStats"></app-line-graph>
       </ktd-grid-item>
 
       <ktd-grid-item id="2"
                      class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
         <ng-template ktdGridItemPlaceholder></ng-template>
-        <app-line-graph title="Games count" [titlePadding]="130" [xAxisData]="dates" [yAxisData]="playersStats"></app-line-graph>
+        @if (gamesStats.length > 0) {
+          <app-line-graph title="Games count" [titlePadding]="130" [xAxisData]="gamesDates"
+                          [yAxisData]="gamesStats"></app-line-graph>
+        } @else {
+          <h4 class="text-center">No recent games stats for these players.</h4>
+        }
       </ktd-grid-item>
     </ktd-grid>
   </div>
