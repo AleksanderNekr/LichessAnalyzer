@@ -69,6 +69,9 @@ export class DashboardAreaComponent {
         let dates: Date[] = []
         for (const player of players) {
           let rates: number[] = []
+          if (!player.ratingsHistories[0]) {
+            continue
+          }
           for (let rating of player.ratingsHistories[0].ratingsPerDate) {
             rates.push(rating.rating)
             dates.push(new Date(rating.actualityDate))
