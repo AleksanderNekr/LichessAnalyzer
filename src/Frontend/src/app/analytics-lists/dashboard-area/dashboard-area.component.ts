@@ -1,5 +1,5 @@
 import { Component, effect, Input, signal, WritableSignal } from '@angular/core';
-import { IList } from "../lists-service/list.model";
+import { IList, IListedPlayer } from "../lists-service/list.model";
 import { KtdGridLayout, KtdGridModule } from "@katoid/angular-grid-layout";
 import { LineGraphComponent } from "./graphs/line-graph/line-graph.component";
 import { FetchDataService } from "../fetch-data/fetch-data.service";
@@ -9,6 +9,7 @@ import { Subscription } from "rxjs";
 import { ListsStorageService } from "./storage-service/lists-storage.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { AddPlayersModalComponent } from "../add-players-modal/add-players-modal.component";
+import { AnalyticsListsService } from "../lists-service/analytics-lists.service";
 
 @Component({
   selector: 'app-dashboard-area',
@@ -39,7 +40,8 @@ export class DashboardAreaComponent {
 
   constructor(private readonly fetchDataService: FetchDataService,
               private readonly listsStorageService: ListsStorageService,
-              private readonly modalService: NgbModal) {
+              private readonly modalService: NgbModal,
+              private readonly listsService: AnalyticsListsService,) {
     effect(() => {
       listsStorageService.saveDashboardLayout(this.prevSelectedList()?.id + '-layout', this.layout)
       this.ngOnInit()
@@ -113,5 +115,16 @@ export class DashboardAreaComponent {
       this.selectedList()
       this.updateData()
     })
+  }
+
+  removePlayerHandle(player: IListedPlayer) {
+    if (this.selectedList() === null) {
+      return
+    }
+    this.listsService.removePlayer(this.selectedList()!, player)
+      .add(() => {
+        this.selectedList()
+        this.updateData()
+      })
   }
 }
