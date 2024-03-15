@@ -8,15 +8,11 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 RUN dotnet tool install --global --no-cache dotnet-subset --version 0.3.2
 WORKDIR /app/src/
 COPY . .
-RUN ls
 RUN dotnet subset restore "src/Backend/Backend.csproj" --root-directory /app/src --output restore_subset/
-RUN ls
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app/src
-RUN ls
 COPY --from=prepare-restore-files app/src/restore_subset .
-RUN ls
 RUN dotnet restore "src/Backend/Backend.csproj"
 COPY . .
 RUN dotnet build "src/Backend/Backend.csproj" -c Release -o /app/build
