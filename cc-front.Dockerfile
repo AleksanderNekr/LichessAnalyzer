@@ -13,4 +13,4 @@ RUN rm /etc/nginx/conf.d/default.conf
 RUN mv /etc/nginx/conf.d/nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=angular /ng-app/dist/frontend/browser /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080
