@@ -171,4 +171,11 @@ export class DashboardAreaComponent {
         this.updateData()
       })
   }
+
+  exportPlayersDataHandle() {
+    if (this.selectedList() === null) {
+      return
+    }
+    this.listsService.exportPlayersData(this.selectedList()!)
+  }
 }

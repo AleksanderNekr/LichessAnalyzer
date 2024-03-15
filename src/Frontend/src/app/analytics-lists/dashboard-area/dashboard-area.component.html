@@ -2,7 +2,16 @@
   <p class="fs-3">No list selected, please select one from left side menu</p>
 } @else if (selectedList()!.listedPlayers && selectedList()!.listedPlayers.length > 0) {
   <h2>{{ selectedList()?.name }}</h2>
-  <div class="">
+  <div class="my-3 mt-0 row">
+    <div class="w-50">
+      <button class="btn btn-outline-secondary w-100 bi-filetype-xlsx" (click)="exportPlayersDataHandle()">
+        Export Players Data
+      </button>
+    </div>
+    <div class="w-50">
+    </div>
+  </div>
+  <div>
     <ktd-grid [cols]="cols"
               [rowHeight]="rowHeight"
               [layout]="layout"
