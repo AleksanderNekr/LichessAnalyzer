@@ -42,17 +42,12 @@ public record Statistic(
 );
 
 public record TournamentStatistic(
-    [property: JsonPropertyName("tournament")]          Tournament Tournament,
-    [property: JsonPropertyName("wins")]                int        Wins,
-    [property: JsonPropertyName("losses")]              int        Losses,
-    [property: JsonPropertyName("draws")]               int        Draws,
-    [property: JsonPropertyName("meanOpponentsRating")] double     MeanOpponentsRating,
-    [property: JsonPropertyName("rating")]              int        Rating
+    [property: JsonPropertyName("tournament")] Tournament Tournament,
+    [property: JsonPropertyName("score")]      int        Score,
+    [property: JsonPropertyName("rank")]       int        Rank
 );
 
 public record Tournament(
-    [property: JsonPropertyName("id")]                string   Id,
-    [property: JsonPropertyName("name")]              string   Name,
-    [property: JsonPropertyName("organiserNickname")] string   OrganiserNickname,
-    [property: JsonPropertyName("date")]              DateTime Date
+    [property: JsonPropertyName("id")]   string Id,
+    [property: JsonPropertyName("name")] string Name
 );
