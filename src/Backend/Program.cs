@@ -118,7 +118,8 @@ await ApplyMigrationsAsync(app.Services);
 
 app.UseEndpoints(_ => {});
 
-app.UseSpa(spaBuilder => spaBuilder.UseProxyToSpaDevelopmentServer("http://localhost:4200"));
+var spaAddress = builder.Configuration.GetValue<string>("SpaAddress")!;
+app.UseSpa(spaBuilder => spaBuilder.UseProxyToSpaDevelopmentServer(spaAddress));
 
 Log.Information("I'm alive!");
 
