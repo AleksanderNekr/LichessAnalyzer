@@ -7,9 +7,12 @@ namespace Backend.DataManagement.LichessApi.LichessResponsesModels;
 public record ActivityResponse(
     [property: JsonPropertyName("interval")] TimeInterval Interval,
     [property: JsonPropertyName("games")]
-    [property: JsonConverter(converterType: typeof(GamesDataConverter))]
-    GamesData? GamesData
+    [property: JsonConverter(converterType: typeof(GamesDataConverter))] GamesData? GamesData,
+    [property: JsonPropertyName("tournaments")] TournamentsData? TournamentsData
 );
+
+public record TournamentsData(
+    [property: JsonPropertyName("best")] IEnumerable<TournamentStatistic> TournamentStatistics);
 
 public record GamesData(Dictionary<PlayCategory, Stat> Data);
 
