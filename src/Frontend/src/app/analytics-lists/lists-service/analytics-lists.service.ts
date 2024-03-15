@@ -1,5 +1,5 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { IList, IListedPlayer } from "./list.model"
 
 @Injectable({
@@ -70,5 +70,22 @@ export class AnalyticsListsService {
 
           return lists
         }))
+  }
+
+  exportPlayersData(list: IList) {
+    let headers = new HttpHeaders().set('Accept', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    return this.http.get(`api/lists/${ list.id }/data/Excel`,
+      { responseType: 'blob', headers: headers })
+      .subscribe(value => {
+        let url = window.URL.createObjectURL(value)
+        let a = document.createElement('a')
+        document.body.appendChild(a)
+        a.setAttribute('style', 'display: none')
+        a.href = url
+        a.download = 'players.xlsx'
+        a.click()
+        window.URL.revokeObjectURL(url)
+        a.remove()
+      })
   }
 }
