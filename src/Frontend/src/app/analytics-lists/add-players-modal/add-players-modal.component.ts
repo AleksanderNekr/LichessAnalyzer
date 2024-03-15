@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, WritableSignal } from '@angular/core';
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { AnalyticsListsService } from "../lists-service/analytics-lists.service";
 import { AuthService } from "../../auth/auth.service";
 import { FetchDataService } from "../fetch-data/fetch-data.service";
+import { IList } from "../lists-service/list.model";
 
 @Component({
   selector: 'app-create-list-modal',
@@ -12,15 +13,16 @@ import { FetchDataService } from "../fetch-data/fetch-data.service";
     ReactiveFormsModule,
     FormsModule
   ],
-  templateUrl: './create-list-modal.component.html',
-  styleUrl: './create-list-modal.component.css'
+  templateUrl: './add-players-modal.component.html',
 })
-export class CreateListModalComponent {
+export class AddPlayersModalComponent {
   searchResults: string[] = []
   playersIdsSearchResult: string[] = []
   lastSearchWasByPlayers: boolean | undefined
   playersIdsSelected: string[] = []
   private draftPlayersIdsSelected: string[] = []
+  private list!: IList
+  private callback!: () => void;
 
   constructor(protected readonly activeModal: NgbActiveModal,
               private readonly authService: AuthService,
@@ -35,11 +37,12 @@ export class CreateListModalComponent {
       '', [ Validators.required, Validators.minLength(3), Validators.maxLength(25) ]),
   })
 
-  listName = new FormControl(
-    '', [ Validators.required, Validators.minLength(3) ])
+  setList(list: IList) {
+    this.list = list
+  }
 
-  listNameInvalid() {
-    return this.listName.invalid && this.listName.touched
+  setSubmitCallback(callback: () => void) {
+    this.callback = callback
   }
 
   handleSearch() {
@@ -73,17 +76,14 @@ export class CreateListModalComponent {
   }
 
   handleSubmit() {
-    this.listName.setValue(this.listName.value!.trim())
-    if (this.listName.invalid) {
-      return
-    }
     if (this.authService.isAuthenticated()) {
-      this.listsService.createByPlayers(this.listName.value!, this.playersIdsSelected)
+      this.listsService.addPlayers(this.list, this.playersIdsSelected)
+        .add(() => this.callback())
     } else {
       alert("Currently only authorized users allowed!")
     }
 
-    this.activeModal.close('List created')
+    this.activeModal.close('Players added to list')
   }
 
   saveDraftPlayersIds() {

@@ -1,5 +1,5 @@
 <div class="modal-header">
-  <h4 class="modal-title">Create Analytics List</h4>
+  <h4 class="modal-title">Add Players to List</h4>
   <button class="btn-close" aria-label="close"
           (click)="activeModal.dismiss('x-btn clicked')">
   </button>
@@ -58,18 +58,6 @@
                   </form>
                 </div>
               </div>
-              <div class="ps-4">
-                <h5 class="py-3 pb-0">Input List name</h5>
-                <div class="m-1 py-1 pb-0 pt-2">
-                  <input type="search"
-                         class="form-control {{ listNameInvalid() ? 'border-danger' : '' }}"
-                         placeholder="Input List name"
-                         [formControl]="listName">
-                  @if (listNameInvalid()) {
-                    <p class="text-danger fs-6 m-0 p-0">Should be at least 3 symbols</p>
-                  }
-                </div>
-              </div>
             </div>
             <div>
               @if (searchResults.length === 0 && playersIdsSearchResult.length === 0) {
@@ -115,11 +103,11 @@
 <div class="modal-footer">
   <button class="btn btn-outline-dark"
           (click)="activeModal.close('Close btn clicked')">
-    Close without creation
+    Close without adding
   </button>
   <button class="btn btn-primary"
-          [disabled]="listName.invalid"
+          [disabled]="playersIdsSelected.length === 0"
           (click)="handleSubmit()">
-    Accept creation
+    Accept adding
   </button>
 </div>
