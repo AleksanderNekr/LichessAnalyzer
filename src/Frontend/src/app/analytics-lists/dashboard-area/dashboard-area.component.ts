@@ -3,6 +3,8 @@ import { IList } from "../lists-service/list.model";
 import { AnalyticsListsService } from "../lists-service/analytics-lists.service";
 import { DashContentComponent } from "./dash-content/dash-content.component";
 import { AddPlayersService } from "./dash-content/add-players.service";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { PrintContentComponent } from "./print-content/print-content.component";
 
 @Component({
   selector: 'app-dashboard-area',
@@ -16,7 +18,8 @@ export class DashboardAreaComponent {
   @Input({ required: true }) prevSelectedList: WritableSignal<IList | null> = signal(null)
 
   constructor(private readonly listsService: AnalyticsListsService,
-              private readonly addPlayersService: AddPlayersService) {
+              private readonly addPlayersService: AddPlayersService,
+              private readonly modalService: NgbModal,) {
   }
 
   exportPlayersDataHandle() {
@@ -30,5 +33,10 @@ export class DashboardAreaComponent {
     this.addPlayersService.addPlayersHandle(this.selectedList(), () => {
       this.selectedList()
     })
+  }
+
+  printDashboardHandle() {
+    let modal = this.modalService.open(PrintContentComponent, { size: "xl" })
+    modal.componentInstance.setSelectedList(this.selectedList)
   }
 }

@@ -24,7 +24,8 @@ import { AddPlayersService } from "./add-players.service";
 })
 export class DashContentComponent {
   @Input({ required: true }) selectedList: WritableSignal<IList | null> = signal(null)
-  @Input({ required: true }) prevSelectedList: WritableSignal<IList | null> = signal(null)
+  @Input() prevSelectedList: WritableSignal<IList | null> = signal(null)
+  @Input() forPrint: boolean = false
 
   cols = 25
   rowHeight = 50
