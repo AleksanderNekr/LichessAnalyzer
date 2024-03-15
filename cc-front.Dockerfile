@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM node:20-alpine as angular
 WORKDIR /ng-app
-COPY src/Frontend/package*.json .
+COPY src/Frontend/package*.json ./
 RUN npm ci --legacy-peer-deps
-COPY ./src/Frontend/ .
+COPY ./src/Frontend/ ./
 RUN npm run build
 
 FROM nginx:alpine
