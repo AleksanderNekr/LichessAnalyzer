@@ -44,9 +44,6 @@ interface IStatistic {
 
 interface ITournamentStatistic {
   "tournament": ITournament,
-  "wins": number,
-  "losses": number,
-  "draws": number,
-  "meanOpponentsRating": number,
-  "rating": number
+  "score": number,
+  "rank": number,
 }
