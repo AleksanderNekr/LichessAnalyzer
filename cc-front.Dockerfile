@@ -2,6 +2,7 @@
 FROM node:20-alpine as angular
 WORKDIR /ng-app
 COPY src/Frontend/package*.json ./
+RUN npm install -g npm@10.5.0
 RUN npm ci --legacy-peer-deps
 COPY ./src/Frontend/ ./
 RUN npm run build
