@@ -1,0 +1,36 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-2 list-group-item">
+      <div class="form-control p-3 text-center">
+        <h2 class="mx-2 mb-3">Your Lists</h2>
+        <button class="btn btn-outline-success mx-2 w-75 h-25 bi-clipboard2-data" (click)="createList()">
+          &nbsp;Add List
+        </button>
+      </div>
+      @if (listsService.lists().length > 0) {
+        <div class="list-group d-flex">
+          @for (list of listsService.lists(); track $index) {
+            <button class="list-group-item list-group-item-action {{ markIfSelected(list.id) }} d-inline-flex"
+                    (click)="selectList(list)">
+              <label class="w-75 text-start align-self-center">{{ list.name }}</label>
+              <div class="d-inline-flex">
+                <button class="btn bi-pen mx-3 px-0" (click)="showEditListForm(list)"></button>
+                <button class="btn bi-trash px-0" (click)="showDeleteForm(list)"></button>
+              </div>
+            </button>
+          }
+        </div>
+      }
+    </div>
+    <div class="col-md-10">
+      <div class="content">
+        @if (listsService.lists().length === 0) {
+          <p class="fs-3">Here will be a dashboard for selected list, please create one by clicking `Add List`
+                          button</p>
+        } @else {
+          <app-dashboard-area [prevSelectedList]="prevSelectedList" [selectedList]="selectedList"></app-dashboard-area>
+        }
+      </div>
+    </div>
+  </div>
+</div>

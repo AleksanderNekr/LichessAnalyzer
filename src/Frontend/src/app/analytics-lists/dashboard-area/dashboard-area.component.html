@@ -1,0 +1,25 @@
+@if (selectedList() === null) {
+  <p class="fs-3">No list selected, please select one from left side menu</p>
+} @else if (selectedList()!.listedPlayers && selectedList()!.listedPlayers.length > 0) {
+  <h2>{{ selectedList()?.name }}</h2>
+  <div class="my-3 mt-0 row">
+    <div class="w-50">
+      <button class="btn btn-outline-secondary w-100 bi-filetype-xlsx" (click)="exportPlayersDataHandle()">
+        Export Players Data
+      </button>
+    </div>
+    <div class="w-50">
+      <button class="btn btn-outline-secondary w-100 bi-printer" (click)="printDashboardHandle()">
+        Print Dashboard
+      </button>
+    </div>
+  </div>
+  <app-dash-content [prevSelectedList]="prevSelectedList" [selectedList]="selectedList"></app-dash-content>
+} @else if (!selectedList()!.listedPlayers || selectedList()!.listedPlayers.length === 0) {
+  <div class="d-flex justify-content-center align-items-center">
+    <div class="text-center">
+      <p class="fs-3">No players in list to analyze, please add some</p>
+      <button class="btn btn-outline-info w-50" (click)="addPlayersHandle()">Add players</button>
+    </div>
+  </div>
+}

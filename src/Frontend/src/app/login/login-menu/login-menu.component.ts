@@ -2,6 +2,9 @@
 import { AsyncPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { AuthService } from "../../auth/auth.service";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { ModalDialogComponent } from "../../modals/modal-dialog/modal-dialog.component";
+import { ButtonStyle } from "../../modals/modal-dialog/button.style";
 
 @Component({
   selector: 'app-login-menu',
@@ -15,10 +18,19 @@ import { AuthService } from "../../auth/auth.service";
 })
 export class LoginMenuComponent {
 
-  constructor(protected readonly authService: AuthService) {
+  constructor(protected readonly authService: AuthService,
+              private readonly modalService: NgbModal) {
   }
 
   logout() {
-    this.authService.logout()
+    let modal = this.modalService.open(ModalDialogComponent)
+    modal.componentInstance.setSubmitCallback(() => this.authService.logout())
+    modal.componentInstance.setTexts(
+      "Confirm Exit",
+      "Are you really want to exit from your account?",
+      "Yes",
+      "No"
+    )
+    modal.componentInstance.setSubmitBtnStyle(ButtonStyle.Danger)
   }
 }
