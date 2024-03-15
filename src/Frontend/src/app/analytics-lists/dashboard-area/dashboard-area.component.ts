@@ -36,7 +36,7 @@ export class DashboardAreaComponent {
   }
 
   printDashboardHandle() {
-    let modal = this.modalService.open(PrintContentComponent, { size: "xl" })
+    let modal = this.modalService.open(PrintContentComponent, { fullscreen: true })
     modal.componentInstance.setSelectedList(this.selectedList)
   }
 }

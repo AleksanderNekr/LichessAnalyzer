@@ -1,6 +1,7 @@
 import { Component, Input, signal, WritableSignal } from '@angular/core';
 import { DashContentComponent } from "../dash-content/dash-content.component";
 import { IList } from "../../lists-service/list.model";
+import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-print-content',
@@ -11,16 +12,17 @@ import { IList } from "../../lists-service/list.model";
   templateUrl: './print-content.component.html',
 })
 export class PrintContentComponent {
+  constructor(private readonly activeModal: NgbActiveModal) {
+  }
   selectedList: WritableSignal<IList | null> = signal(null)
-  headerVisible: boolean = true
 
   setSelectedList(listSignal: WritableSignal<IList | null>) {
     this.selectedList.set(listSignal())
   }
 
   printHandle() {
-    this.headerVisible = false
-    window.print()
-    this.headerVisible = true
+    document.getElementById("header")?.remove()
+    print()
+    this.activeModal.close('print')
   }
 }
