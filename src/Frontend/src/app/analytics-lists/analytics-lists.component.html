@@ -3,7 +3,9 @@
     <div class="col-md-2 list-group-item">
       <div class="form-control p-3 text-center">
         <h2 class="mx-2 mb-3">Your Lists</h2>
-        <button class="btn btn-outline-success mx-2 w-75 h-25" (click)="createList()">Add List</button>
+        <button class="btn btn-outline-success mx-2 w-75 h-25 bi-clipboard2-data" (click)="createList()">
+          &nbsp;Add List
+        </button>
       </div>
       @if (listsService.lists().length > 0) {
         <div class="list-group d-flex">
