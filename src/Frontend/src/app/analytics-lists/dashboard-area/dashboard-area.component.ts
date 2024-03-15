@@ -11,13 +11,15 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { AddPlayersModalComponent } from "../add-players-modal/add-players-modal.component";
 import { AnalyticsListsService } from "../lists-service/analytics-lists.service";
 import { IPlayer } from "../fetch-data/models/player";
+import { PieChartComponent } from "./graphs/pie-chart/pie-chart.component";
 
 @Component({
   selector: 'app-dashboard-area',
   standalone: true,
   imports: [
     KtdGridModule,
-    LineGraphComponent
+    LineGraphComponent,
+    PieChartComponent
   ],
   templateUrl: './dashboard-area.component.html',
   styleUrl: './dashboard-area.component.css'
@@ -37,6 +39,7 @@ export class DashboardAreaComponent {
 
   public gamesDates = [ new Date('2023-01-01'), new Date('2024-01-01'), new Date('2024-01-21') ]
   public gamesStats: { data: number[]; name: string; type: 'line' }[] = []
+  public tournamentsActivityData: { name: string; value: number }[] = []
 
   updateLayoutHandle(layout: KtdGridLayout) {
     this.layout = layout;
@@ -71,7 +74,8 @@ export class DashboardAreaComponent {
 
     this.playersStats = []
     this.gamesStats = []
-    return this.fetchDataService.fetchPlayers(ids, [ Stat.Ratings ], [ Category.Classical ])
+    this.tournamentsActivityData = []
+    return this.fetchDataService.fetchPlayers(ids, [ Stat.Ratings, Stat.TournamentsStats ], [ Category.Classical ])
       .subscribe(players => {
         let rateDates: Date[] = []
         let gameDates: Date[] = []
@@ -79,6 +83,7 @@ export class DashboardAreaComponent {
         for (const player of players) {
           this.updatePlayersStats(player, rateDates)
           this.updateGamesStats(player, gameDates)
+          this.updateTournamentsActivity(player)
         }
         this.ratingsDates = rateDates.sort((date1, date2) => date1.getTime() - date2.getTime())
         this.gamesDates = gameDates.sort((date1, date2) => date1.getTime() - date2.getTime())
@@ -115,6 +120,17 @@ export class DashboardAreaComponent {
       data: games,
       type: "line"
     })
+  }
+
+  private updateTournamentsActivity(player: IPlayer) {
+    if (!player.tournaments[0] || this.foundPlayer(player)) {
+      return
+    }
+    this.tournamentsActivityData.push({ name: player.nickname, value: player.tournaments.length })
+  }
+
+  foundPlayer(player: IPlayer) {
+    return this.tournamentsActivityData.findIndex(value => value.name == player.nickname) >= 0;
   }
 
   updateCurrentLayout() {

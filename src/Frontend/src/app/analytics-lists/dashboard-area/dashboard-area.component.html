@@ -50,6 +50,17 @@
           <h4 class="text-center">No recent games stats for these players.</h4>
         }
       </ktd-grid-item>
+
+      <ktd-grid-item id="3"
+                     class="border border-2 border-dark p-3 rounded-3 border-opacity-25">
+        <ng-template ktdGridItemPlaceholder></ng-template>
+        @if (gamesStats.length > 0) {
+          <app-pie-chart title="Tournaments activity" [titlePadding]="30"
+                         [data]="tournamentsActivityData"></app-pie-chart>
+        } @else {
+          <h4 class="text-center">No recent tournaments stats for these players.</h4>
+        }
+      </ktd-grid-item>
     </ktd-grid>
   </div>
 } @else if (!selectedList()!.listedPlayers || selectedList()!.listedPlayers.length === 0) {
