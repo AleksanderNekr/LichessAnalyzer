@@ -1,14 +1,26 @@
 services:
+  front:
+    container_name: front
+    build:
+      context: ./src/Frontend/
+    environment:
+      NODE_ENV: production
+    ports:
+      - 4200:4200
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
   server:
+    container_name: back 
     build:
       context: ./src/Backend/
       target: final
     ports:
       - 8080:8080
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
+      front:
         condition: service_started
   postgres:
     image: postgres
