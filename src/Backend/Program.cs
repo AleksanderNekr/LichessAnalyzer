@@ -180,3 +180,5 @@ static Task WriteCheckResponse(HttpContext httpContext, HealthReport healthRepor
 
     return UIResponseWriter.WriteHealthCheckUIResponse(httpContext, healthReport);
 }
+
+public partial class Program;
