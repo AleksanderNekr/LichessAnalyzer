@@ -96,6 +96,7 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseReDoc(options => options.RoutePrefix = "api");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
