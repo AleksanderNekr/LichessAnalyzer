@@ -1,0 +1,23 @@
+<div class="modal-header">
+  <h4 class="modal-title">Update List name</h4>
+  <button class="btn-close" aria-label="close"
+          (click)="activeModal.dismiss('x-btn clicked')">
+  </button>
+</div>
+<div class="modal-body">
+  <div class="container-fluid">
+    <input type="text" class="form-control" placeholder="Type new list name"
+           [formControl]="nameField">
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-outline-dark"
+          (click)="activeModal.close('Close btn clicked')">
+    Close without updates
+  </button>
+  <button class="btn btn-primary"
+          [disabled]="nameInvalid()"
+          (click)="handleSubmit()">
+    Accept update
+  </button>
+</div>

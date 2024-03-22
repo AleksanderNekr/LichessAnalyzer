@@ -1,0 +1,15 @@
+﻿<ul class="navbar-nav">
+  @if (authService.isAuthenticated()) {
+    <li class="nav-item">
+      <a [routerLink]='["/account/profile"]' class="nav-link text-dark"
+         title="Manage">Hello {{ authService.getUserName() }}</a>
+    </li>
+    <li class="nav-item">
+      <a (click)="logout()" class="nav-link text-dark" style="cursor: pointer" title="Logout">Logout</a>
+    </li>
+  } @else {
+    <li class="nav-item">
+      <a [routerLink]='["/account/login"]' class="nav-link text-dark">Login</a>
+    </li>
+  }
+</ul>
