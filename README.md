@@ -6,5 +6,6 @@ Made using:
 - Angular 17
 - Redis
 - PostgreSQL
+- Docker
 # Architecture
 ![image](https://github.com/AleksanderNekr/LichessAnalyzer/assets/59678267/dbdd9f2c-688f-4e18-ab60-b59bf046a57a)
