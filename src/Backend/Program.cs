@@ -15,6 +15,9 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Interfaces;
+using Microsoft.OpenApi.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +58,31 @@ builder.Services
                            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+                               {
+                                   options.SwaggerDoc("v1",
+                                                      new OpenApiInfo
+                                                      {
+                                                          Title       = "LichessAnalyzer API",
+                                                          Version     = "v1",
+                                                          Description = "LichessAnalyzer OpenAPI specification",
+                                                          Extensions = new Dictionary<string, IOpenApiExtension>
+                                                                       {
+                                                                           {
+                                                                               "x-logo",
+                                                                               new OpenApiObject
+                                                                               {
+                                                                                   {
+                                                                                       "url",
+                                                                                       new OpenApiString(
+                                                                                           "https://github.com/AleksanderNekr/LichessAnalyzer/blob/master/src/Frontend/src/assets/logo-gen-nobg.png?raw=true")
+                                                                                   },
+                                                                                   { "altText", new OpenApiString("The Logo") }
+                                                                               }
+                                                                           }
+                                                                       }
+                                                      });
+                               });
 builder.Services.AddHttpClient<LichessDataService>(
             client =>
             {
