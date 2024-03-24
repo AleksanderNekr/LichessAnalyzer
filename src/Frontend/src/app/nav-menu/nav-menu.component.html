@@ -2,6 +2,8 @@
   <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
     <div class="container">
       <a [routerLink]="['/']" class="navbar-brand">LichessAnalyzer</a>
+      <a [routerLink]="['/api']" target="_blank" class="nav-link text-dark bi-box-arrow-up-right">&nbsp;API</a>
+      <a href="https://github.com/AleksanderNekr/LichessAnalyzer" target="_blank" class="px-3 nav-link text-dark bi-github">&nbsp;Source</a>
       <button
         (click)="toggle()"
         [attr.aria-expanded]="isExpanded"
