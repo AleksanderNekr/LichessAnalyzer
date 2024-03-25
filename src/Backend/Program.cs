@@ -74,8 +74,7 @@ builder.Services.AddSwaggerGen(options =>
                                                                                {
                                                                                    {
                                                                                        "url",
-                                                                                       new OpenApiString(
-                                                                                           "https://github.com/AleksanderNekr/LichessAnalyzer/blob/master/src/Frontend/src/assets/logo-gen-nobg.png?raw=true")
+                                                                                       new OpenApiString("/assets/logo-gen-nobg.png?raw=true")
                                                                                    },
                                                                                    { "altText", new OpenApiString("The Logo") }
                                                                                }
