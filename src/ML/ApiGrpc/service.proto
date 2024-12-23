@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package LichessAnalyzerForecast;
+
+service RatingPredictor {
+  rpc PredictRating (PredictRatingRequest) returns (PredictRatingResponse);
+}
+
+message PredictRatingRequest {
+  repeated Rating ratings = 1;
+  int32 num_predictions = 2;
+}
+
+message Rating {
+  string date = 1;
+  double rating = 2;
+}
+
+message PredictRatingResponse {
+  repeated Rating predictions = 1;
+}
