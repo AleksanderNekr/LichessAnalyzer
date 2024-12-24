@@ -1,0 +1,5 @@
+protobuf~=5.29.2
+grpcio~=1.68.1
+joblib~=1.4.2
+requests~=2.32.2
+pandas~=2.2.3

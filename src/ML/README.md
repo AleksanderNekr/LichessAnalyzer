@@ -1,1 +1,1 @@
-gRPC-сервер сгенерирован на основе service.proto с помощью команды `protoc -I. --python_out=.  service.proto`
+gRPC-сервер сгенерирован на основе service.proto с помощью команды `python -m grpc_tools.protoc -I. --python_out=./ML/ApiGrpc/ --grpc_python_out=./ML/ApiGrpc/ ../Protos/service.proto`
