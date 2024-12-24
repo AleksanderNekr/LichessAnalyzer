@@ -12,6 +12,20 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+  ml:
+    container_name: ml
+    build:
+      dockerfile: ./ML/Dockerfile
+      context: ./src/
+    ports:
+      - 5000:5000
+    environment:
+      LISTEN_PORT: 5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
   server:
     container_name: back
     build:
@@ -22,6 +36,8 @@ services:
       - 8080:8080
     depends_on:
       front:
+        condition: service_started
+      ml:
         condition: service_started
   postgres:
     image: postgres
