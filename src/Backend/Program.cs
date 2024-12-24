@@ -9,6 +9,7 @@ using Backend.DataManagement.Analytics;
 using Backend.DataManagement.LichessApi;
 using Backend.DataManagement.Users;
 using Backend.DataManagement.Users.Services;
+using Backend.MLGrpc;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
@@ -103,6 +104,7 @@ builder.Services.AddTransient<UsersRepository>();
 builder.Services.AddTransient<AnalyticsListsRepository>();
 builder.Services.AddTransient<AuthService>();
 builder.Services.AddTransient<CachedDataService>();
+builder.Services.AddTransient<ForecastGrpcService>();
 
 IConfigurationSection redisCacheSection = builder.Configuration.GetSection("RedisSettings");
 builder.Services.Configure<CacheOptions>(redisCacheSection);

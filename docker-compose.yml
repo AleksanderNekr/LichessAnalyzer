@@ -13,9 +13,10 @@ services:
       redis:
         condition: service_started
   server:
-    container_name: back 
+    container_name: back
     build:
-      context: ./src/Backend/
+      dockerfile: ./Backend/Dockerfile
+      context: ./src/
       target: final
     ports:
       - 8080:8080
