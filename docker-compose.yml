@@ -40,6 +40,7 @@ services:
       ml:
         condition: service_started
   postgres:
+    container_name: postgres
     image: postgres
     restart: unless-stopped
     environment:
