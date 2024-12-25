@@ -5,40 +5,35 @@ import ApiGrpc.service_pb2 as service_pb2
 import ApiGrpc.service_pb2_grpc as service_pb2_grpc
 import joblib
 import pandas as pd
-from datetime import datetime, timedelta
+import numpy as np
 
 LISTEN_PORT = os.environ.get('LISTEN_PORT', '50051')
-
+MODEL_PATH = os.environ.get('MODEL_PATH', 'Learning/rating_predictor_model.pkl')
 
 class RatingPredictorServicer(service_pb2_grpc.RatingPredictorServicer):
     def __init__(self):
-        # self.model = joblib.load('rating_predictor_model.pkl')
+        self.model = joblib.load(MODEL_PATH)
         pass
 
     def PredictRating(self, request, context):
-        # Convert gRPC request to DataFrame
-        ratings = [{'ds': datetime.strptime(rating.date, '%Y-%m-%d'), 'y': rating.rating} for
-                   rating in request.ratings]
-        df = pd.DataFrame(ratings)
+        # Prepare the input data for prediction
+        last_rating = request.ratings[-1].rating
+        input_data = np.array([last_rating]).reshape(-1, 1, 1)
 
         # Predict future ratings
-        # future = self.model.make_future_dataframe(periods=request.num_predictions)
-        # forecast = self.model.predict(future)
-        forecast = pd.DataFrame({
-            'ds': [datetime.now() + timedelta(days=i) for i in range(request.num_predictions)],
-            'yhat': [1000 + i * 10 for i in range(request.num_predictions)],
-        })
+        predictions = []
+        for _ in range(request.num_predictions):
+            prediction = self.model.predict(input_data)
+            input_data = np.append(input_data[:, 1:, :], prediction.reshape(-1, 1, 1), axis=1)
+            predictions.append(prediction[0][0])
 
         # Prepare the response
-        predictions = []
-        for i in range(request.num_predictions):
-            prediction = service_pb2.Rating(
-                date=forecast.iloc[-(request.num_predictions - i)]['ds'].strftime('%Y-%m-%d'),
-                rating=forecast.iloc[-(request.num_predictions - i)]['yhat']
-            )
-            predictions.append(prediction)
+        response = service_pb2.PredictRatingResponse()
+        for i, rating in enumerate(predictions):
+            prediction_date = (pd.to_datetime(request.ratings[-1].date) + pd.DateOffset(days=i + 1)).strftime('%Y-%m-%d')
+            response.predictions.add(date=prediction_date, rating=rating)
 
-        return service_pb2.PredictRatingResponse(predictions=predictions)
+        return response
 
 
 def serve():

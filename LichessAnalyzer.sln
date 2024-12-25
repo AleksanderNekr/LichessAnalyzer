@@ -12,7 +12,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackendTests", "tests\BackendTests\BackendTests.csproj", "{7058DF6D-661A-483F-9EBF-160258516129}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{EA8100D4-9E40-4034-8F0D-C74770ED364B}"
-    src\Frontend\ = src\Frontend\
+				src\Frontend\ = src\Frontend\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ML", "ML", "{A1E308B3-685F-4484-BC3C-61EA89C2B82D}"
 EndProject
@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protos", "Protos", "{558241
 	ProjectSection(SolutionItems) = preProject
 		src\Protos\service.proto = src\Protos\service.proto
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E686E785-229F-47CA-B2D2-883DB50AF38A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

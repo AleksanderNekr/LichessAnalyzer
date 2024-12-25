@@ -16,6 +16,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
+# Set environment variables to disable GPU usage and set Matplotlib config directory
+ENV CUDA_VISIBLE_DEVICES=""
+ENV MPLCONFIGDIR="/tmp/matplotlib"
+
 WORKDIR /app
 
 # Create a non-privileged user that the app will run under.
@@ -42,7 +46,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 USER appuser
 
 # Copy the source code into the container.
-COPY . .
+COPY ./ML/ ./ML/
+COPY ./Protos/ ./Protos/
 
 # Expose the port that the application listens on.
 EXPOSE 8080
