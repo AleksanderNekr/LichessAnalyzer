@@ -12,17 +12,36 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-  server:
-    container_name: back 
+  ml:
+    container_name: ml
     build:
-      context: ./src/Backend/
+      dockerfile: ./ML/Dockerfile
+      context: ./src/
+    ports:
+      - 5000:5000
+    environment:
+      LISTEN_PORT: 5000
+      MODEL_PATH: "./ML/Learning/rating_predictor_model.pkl"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  server:
+    container_name: back
+    build:
+      dockerfile: ./Backend/Dockerfile
+      context: ./src/
       target: final
     ports:
       - 8080:8080
     depends_on:
       front:
         condition: service_started
+      ml:
+        condition: service_started
   postgres:
+    container_name: postgres
     image: postgres
     restart: unless-stopped
     environment:

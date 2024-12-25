@@ -8,19 +8,19 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 RUN dotnet tool install --global --no-cache dotnet-subset --version 0.3.2
 WORKDIR /app/src/
 COPY . .
-RUN dotnet subset restore "Backend.csproj" --root-directory /app/src --output restore_subset/
+RUN dotnet subset restore "./Backend/Backend.csproj" --root-directory /app/src --output restore_subset/
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app/src
 COPY --from=prepare-restore-files app/src/restore_subset .
-RUN dotnet restore "Backend.csproj"
+RUN dotnet restore "./Backend/Backend.csproj"
 COPY . .
-RUN dotnet build "Backend.csproj" -c Release -o /app/build
+RUN dotnet build "./Backend/Backend.csproj" -c Release -o /app/build
 # For healthchecks
 RUN apt-get update && apt-get install -y curl
 
 FROM build AS publish
-RUN dotnet publish "Backend.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Backend/Backend.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
