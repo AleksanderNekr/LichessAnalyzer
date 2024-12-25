@@ -16,12 +16,14 @@ public class RatingsForecastController : Controller
 	{
 		_forecastService = forecastService;
 	}
-	
+
 	[HttpPost("ratings-forecast")]
-	// [Authorize(AuthExtensions.LichessAuthPolicyName)]
-	public async Task<ActionResult<RatingForecastModel[]>> Predict([FromBody] RatingForecastModel[] ratings, int horizon)
+	[Authorize(AuthExtensions.LichessAuthPolicyName)]
+	public async Task<ActionResult<ForecastApiModel[]>> Predict([FromBody] ForecastApiModel request)
 	{
-		var forecast = await _forecastService.GetForecastAsync(ratings, horizon);
+		var forecast = await _forecastService.GetForecastAsync(request.Ratings, request.Horizon);
 		return Ok(forecast);
 	}
+
+	public sealed record ForecastApiModel(RatingForecastModel[] Ratings, int Horizon);
 }
