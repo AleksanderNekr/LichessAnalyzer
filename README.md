@@ -8,5 +8,7 @@ Made using:
 - PostgreSQL
 - Docker
 - Lichess API
+- Python (ML: LSTM via Keras)
 # Architecture
-![image](https://github.com/AleksanderNekr/LichessAnalyzer/assets/59678267/dbdd9f2c-688f-4e18-ab60-b59bf046a57a)
+![image](https://github.com/user-attachments/assets/56f083f4-f3ef-41a2-bd4d-562cb436a6a0)
+
