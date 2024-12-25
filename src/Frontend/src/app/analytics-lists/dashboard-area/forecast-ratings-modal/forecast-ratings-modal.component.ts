@@ -29,6 +29,9 @@ export class ForecastRatingsModalComponent {
     name: string;
     type: "line"
   }[]) {
+    this.dates = ratingDates;
+    this.stats = playersStats;
+
     let newDates: Date[] | null = null;
     playersStats.forEach(stat => {
       let knownRatings: IRatingForecastModel[] = [];
@@ -41,11 +44,7 @@ export class ForecastRatingsModalComponent {
 
       this.forecastService.predictNextRatings(knownRatings, 30)
         .subscribe(predictions => {
-          if (!this.datesUpdated) {
-            newDates = predictions.map(value => new Date(value.date));
-            ratingDates.push(...newDates);
-            this.datesUpdated = true;
-          }
+          newDates = predictions.map(value => new Date(value.date));
 
           let newRatings = predictions.map(value => {
             return { name: new Date(value.date), value: value.rating };
@@ -53,8 +52,8 @@ export class ForecastRatingsModalComponent {
           playersStats.push({ name: stat.name, type: stat.type, data: newRatings });
         })
         .add(() => {
-          this.dates = ratingDates;
-          this.stats = playersStats;
+          this.dates = this.dates.concat(newDates?.filter(date => !this.dates.includes(date)) ?? []);
+          this.stats.push(...playersStats);
         });
     });
   }
